@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="API\APIWrap.cs" />
     <Compile Include="Attributes\TypeAttribute.cs" />
+    <Compile Include="Collection\DualDictionary.cs" />
     <Compile Include="Collection\KeyValueList.cs" />
     <Compile Include="Collection\LanguageDictionary.cs" />
     <Compile Include="Collection\MultiList.cs" />

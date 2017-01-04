@@ -13,11 +13,13 @@ namespace LogicReinc.Tests.Expressions
     public class PropertyTests
     {
         const string _testValue = "Abc";
+        const decimal _testPrimitive = 1235;
         const int _testItterations = 1000000;
 
 
         static TestClass _testObj;
         static Func<object, object> _propGetter;
+        static Func<object, object> _propGetterPrimitive;
         static Action<object, object> _propSetter;
 
         //Reflection for speed comparison
@@ -28,17 +30,35 @@ namespace LogicReinc.Tests.Expressions
         {
             _testObj = new TestClass()
             {
-                SomeName = _testValue
+                SomeName = _testValue,
+                Primitive = _testPrimitive
             };
-            _propGetter = Property.BuildPropertyGetter("SomeName", typeof(TestClass));
-            _propSetter = Property.BuildPropertySetter("SomeName", typeof(TestClass));
+            _propGetter = Property.BuildPropertyGetter("SomeName", typeof(TestClass), true);
+            _propSetter = Property.BuildPropertySetter("SomeName", typeof(TestClass), true);
         }
 
         #region PropetyGetter
         [TestMethod]
         public void BuildPropertyGetter()
         {
-            var getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass));
+            object getter;
+            for(int i = 0; i < 100; i++)
+                getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass));
+        }
+        [TestMethod]
+        public void BuildPropertyGetterCached()
+        {
+            object getter;
+            for (int i = 0; i < 100; i++)
+                getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass), true);
+        }
+
+        [TestMethod]
+        public void BuildPropertyGetterPrimitive()
+        {
+            object getter;
+            for (int i = 0; i < 100; i++)
+                getter = Property.BuildPropertyGetter("Primitive", typeof(TestClass));
         }
 
         [TestMethod]    //1,000,000* = 15-20ms
@@ -108,6 +128,7 @@ namespace LogicReinc.Tests.Expressions
         public class TestClass
         {
             public string SomeName { get; set; }
+            public decimal Primitive { get; set; }
         }
     }
 }

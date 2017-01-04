@@ -56,6 +56,7 @@
     <Compile Include="Collection\TSMultiList.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Exceptions\APIException.cs" />
+    <Compile Include="Expressions\Property.cs" />
     <Compile Include="Extensions\ByteArrayExtensions.cs" />
     <Compile Include="Extensions\FileInfoExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />

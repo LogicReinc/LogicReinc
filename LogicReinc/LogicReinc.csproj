@@ -57,6 +57,7 @@
     <Compile Include="Collection\TSMultiList.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Exceptions\APIException.cs" />
+    <Compile Include="Expressions\Method.cs" />
     <Compile Include="Expressions\Property.cs" />
     <Compile Include="Extensions\ByteArrayExtensions.cs" />
     <Compile Include="Extensions\FileInfoExtensions.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Threading\Worker.cs" />
     <Compile Include="Threading\WorkerPool.cs" />
     <Compile Include="Threading\WorkTask.cs" />
+    <Compile Include="Utility\Resources.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

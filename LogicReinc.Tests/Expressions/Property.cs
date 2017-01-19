@@ -19,8 +19,10 @@ namespace LogicReinc.Tests.Expressions
 
         static TestClass _testObj;
         static Func<object, object> _propGetter;
-        static Func<object, object> _propGetterPrimitive;
         static Action<object, object> _propSetter;
+
+        static Func<object, object> _propGetterIL;
+        static Action<object, object> _propSetterIL;
 
         //Reflection for speed comparison
         static PropertyInfo _propInfo = typeof(TestClass).GetProperty("SomeName");
@@ -35,6 +37,8 @@ namespace LogicReinc.Tests.Expressions
             };
             _propGetter = Property.BuildPropertyGetter("SomeName", typeof(TestClass), true);
             _propSetter = Property.BuildPropertySetter("SomeName", typeof(TestClass), true);
+            _propGetterIL = Property.BuildILPropertyGetters(new PropertyReference(typeof(TestClass), "SomeName")).FirstOrDefault();
+            _propSetterIL = Property.BuildILPropertySetters(new PropertyReference(typeof(TestClass), "SomeName")).FirstOrDefault();
         }
 
         #region PropetyGetter
@@ -42,14 +46,14 @@ namespace LogicReinc.Tests.Expressions
         public void BuildPropertyGetter()
         {
             object getter;
-            for(int i = 0; i < 100; i++)
+            for(int i = 0; i < _testItterations; i++)
                 getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass));
         }
         [TestMethod]
         public void BuildPropertyGetterCached()
         {
             object getter;
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < _testItterations; i++)
                 getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass), true);
         }
 
@@ -57,7 +61,7 @@ namespace LogicReinc.Tests.Expressions
         public void BuildPropertyGetterPrimitive()
         {
             object getter;
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < _testItterations; i++)
                 getter = Property.BuildPropertyGetter("Primitive", typeof(TestClass));
         }
 
@@ -67,6 +71,15 @@ namespace LogicReinc.Tests.Expressions
             for (int i = 0; i < _testItterations; i++)
             {
                 object val = _propGetter(_testObj);
+            }
+        }
+
+        [TestMethod]    //1,000,000* = 8ms
+        public void GetPropertyIL()
+        {
+            for (int i = 0; i < _testItterations; i++)
+            {
+                object val = _propGetterIL(_testObj);
             }
         }
 
@@ -99,6 +112,15 @@ namespace LogicReinc.Tests.Expressions
 
         [TestMethod]    //1,000,000* = 17-20ms
         public void SetProperty()
+        {
+            for (int i = 0; i < _testItterations; i++)
+            {
+                _propSetter(_testObj, _testValue);
+            }
+        }
+
+        [TestMethod]    //1,000,000* = 8ms
+        public void SetPropertyIL()
         {
             for (int i = 0; i < _testItterations; i++)
             {

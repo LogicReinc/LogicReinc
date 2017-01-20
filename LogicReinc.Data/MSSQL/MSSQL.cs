@@ -1,6 +1,7 @@
 ﻿using LogicReinc.Data.SQL;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -26,6 +27,12 @@ namespace LogicReinc.Data.MSSQL
             {
                 conString = value;
             }
+        }
+
+        public MSSQL() { }
+        public MSSQL(string conString)
+        {
+            ConnectionString = conString;
         }
 
         private SqlConnection connection;
@@ -105,22 +112,24 @@ namespace LogicReinc.Data.MSSQL
             return set.Tables[0];
         }
 
-        public List<SortedDictionary<string, object>> RetrieveData(string query)
+        public List<OrderedDictionary> RetrieveData(string query)
         {
             return RetrieveData(new SqlCommand(query));
         }
-        public List<SortedDictionary<string, object>> RetrieveData(SqlCommand command)
+        public List<OrderedDictionary> RetrieveData(SqlCommand command)
         {
             using (SqlConnection con = CreateConnection())
             {
                 command.Connection = con;
                 command.Connection.Open();
 
-                List<SortedDictionary<string, object>> data = new List<SortedDictionary<string, object>>();
+                OrderedDictionary o = new OrderedDictionary();
+                
+                List<OrderedDictionary> data = new List<OrderedDictionary>();
                 using (SqlDataReader reader = command.ExecuteReader())
                     while (reader.Read())
                     {
-                        SortedDictionary<string, object> rowData = new SortedDictionary<string, object>();
+                        OrderedDictionary rowData = new OrderedDictionary();
                         for (int i = 0; i < reader.FieldCount; i++)
                             rowData.Add(reader.GetName(i), reader.GetValue(i));
                         data.Add(rowData);

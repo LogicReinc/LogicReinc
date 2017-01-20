@@ -159,6 +159,11 @@ namespace LogicReinc.Collections
             return i;
         }
 
+        public bool Contains(T obj)
+        {
+            lock (list)
+                return list.Contains(obj);
+        }
         public bool Contains(Func<T, bool> selector)
         {
             lock (list)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LogicReinc.Collections
 {
-    public class TSList<T> : IEnumerable<T>
+    public class TSList<T> : IEnumerable<T>, IList, IList<T>
     {
         private List<T> list = new List<T>();
 
@@ -29,6 +29,80 @@ namespace LogicReinc.Collections
                 return list.Count;
             }
         }
+
+
+
+
+
+
+        //Properties Inherited
+        int ICollection<T>.Count
+        {
+            get
+            {
+                return list.Count;
+            }
+        }
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+        public bool IsFixedSize
+        {
+            get
+            {
+                return false;
+            }
+        }
+        int ICollection.Count
+        {
+            get
+            {
+                return list.Count;
+            }
+        }
+        public object SyncRoot => false;
+        public bool IsSynchronized => false;
+        object IList.this[int index]
+        {
+            get
+            {
+                lock (list)
+                    return list[index];
+            }
+
+            set
+            {
+                lock (list)
+                    list[index] = (T)value;
+            }
+        }
+        public T this[int index]
+        {
+            get
+            {
+                lock (list)
+                    return list[index];
+            }
+
+            set
+            {
+                lock (list)
+                    list[index] = value;
+            }
+        }
+
+
+
+
+
+
+
+
+
 
         //Selectors
         public void Lock(Action<List<T>> action)
@@ -228,6 +302,7 @@ namespace LogicReinc.Collections
             }
         }
 
+        
 
         //Interface
         public IEnumerator<T> GetEnumerator()
@@ -238,6 +313,72 @@ namespace LogicReinc.Collections
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ToList().GetEnumerator();
+        }
+
+        //IList<T> Inherited
+        public int IndexOf(T item)
+        {
+            lock (list)
+                return list.IndexOf(item);
+        }
+        public void Insert(int index, T item)
+        {
+            lock (list)
+                list.Insert(index, item);
+        }
+        public void RemoveAt(int index)
+        {
+            lock (list)
+                list.RemoveAt(index);
+        }
+        public void Clear()
+        {
+            lock (list)
+                list.Clear();
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            lock (list)
+                list.CopyTo(array, arrayIndex);
+        }
+        bool ICollection<T>.Remove(T item)
+        {
+            lock (list)
+                return list.Remove(item);
+        }
+
+
+        //IList Inherited
+        public int Add(object value)
+        {
+            lock(list)
+            list.Add((T)value);
+            return IndexOf(value);
+        }
+        public bool Contains(object value)
+        {
+            return Contains((T)value);
+        }
+        public int IndexOf(object value)
+        {
+            lock (list)
+                return list.IndexOf((T)value);
+        }
+        public void Insert(int index, object value)
+        {
+            lock (list)
+                list.Insert(index, (T)value);
+        }
+        public void Remove(object value)
+        {
+            lock (list)
+                list.Remove((T)value);
+        }
+        public void CopyTo(Array array, int index)
+        {
+            lock (list)
+                list.CopyTo((T[])array, index);
         }
     }
 }

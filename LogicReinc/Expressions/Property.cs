@@ -24,7 +24,7 @@ namespace LogicReinc.Expressions
         static Property()
         {
         }
-       
+        
         public static object Get(object obj, string name)
         {
             Type type = obj.GetType();
@@ -32,14 +32,38 @@ namespace LogicReinc.Expressions
         }
         public static T Get<T>(object obj, string name)
         {
-            Type type = obj.GetType();
-            return (T)BuildPropertyGetter(name, type, true)(obj);
+            return (T)Get(obj, name);
         }
 
         public static void Set(object obj, string name, object value)
         {
             Type type = obj.GetType();
             BuildPropertySetter(name, type, true)(obj, value);
+        }
+
+        public static Func<object, object> BuildPropertyGetter(string property, PropertyInfo prop, Type type, bool cache = false)
+        {
+            if (cache && _cachedGetters.ContainsKey(type, property))
+                return _cachedGetters[type, property];
+            if (prop == null)
+                throw new ArgumentException($"Property [{property}] does not exist");
+
+            //Parameters
+            ParameterExpression arg = Expression.Parameter(typeof(object), "obj");
+
+            //Conversion
+            UnaryExpression convertedArg = Expression.Convert(arg, type);
+
+            //Property
+            Expression getExpression = Expression.Property(convertedArg, property);
+
+
+            //(obj) => obj.[Property];
+
+            Func<object, object> lambda = Expression.Lambda<Func<object, object>>(Expression.Convert(getExpression, typeof(object)), arg).Compile();
+            if (cache)
+                _cachedGetters[type, property] = lambda;
+            return lambda;
         }
 
         public static Func<object, object> BuildPropertyGetter(string property, Type type, bool cache = false)

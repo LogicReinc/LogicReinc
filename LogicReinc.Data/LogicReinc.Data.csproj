@@ -72,8 +72,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQL\QueryBuilder.cs" />
     <Compile Include="Unified\Attributes\UnifiedCollection.cs" />
+    <Compile Include="Unified\Attributes\UnifiedIMReference.cs" />
+    <Compile Include="Unified\IUnifiedIMObject.cs" />
     <Compile Include="Unified\UDatabaseProvider.cs" />
     <Compile Include="Unified\UIMObject.cs" />
+    <Compile Include="Unified\UIMPropertyState.cs" />
+    <Compile Include="Unified\UnifiedSystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LogicReinc\LogicReinc.csproj">

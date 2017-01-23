@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +15,7 @@ namespace LogicReinc.Data.Unified
     /// Unified In-Memory Object
     /// </summary>
     /// <typeparam name="T">Inheritted type</typeparam>
-    public class UnifiedIMObject<T> where T : UnifiedIMObject<T>
+    public class UnifiedIMObject<T> : IUnifiedIMObject where T : UnifiedIMObject<T>
     {
         protected static bool loaded = false;
         public static bool Loaded { get { return loaded; } }
@@ -40,6 +41,12 @@ namespace LogicReinc.Data.Unified
             }
         }
 
+        public Type DataType => typeof(T);
+
+        public IList DatabaseBase => (IList)Database;
+        public Dictionary<string, UIMPropertyState> PropertyStates { get; } = new Dictionary<string, UIMPropertyState>();
+        public List<IUnifiedIMObject> ReferencedTo { get; } = new List<IUnifiedIMObject>();
+
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public virtual string ObjectID { get; set; }
@@ -51,6 +58,7 @@ namespace LogicReinc.Data.Unified
             {
                 database = new TSList<T>(Provider.GetAllObjects<T>());
                 loaded = true;
+                UnifiedSystem.RegisterType(typeof(T));
             }
             return b;
         }
@@ -59,6 +67,8 @@ namespace LogicReinc.Data.Unified
         {
             if (!Loaded)
                 Load();
+
+            UnifiedSystem.HandleObjectChange<T>(this);
             return Provider.UpdateObject<T>((T)this);
         }
         public virtual bool Update(T obj, bool update, params string[] properties)
@@ -88,6 +98,9 @@ namespace LogicReinc.Data.Unified
             bool result = Provider.InsertObject<T>((T)this);
             if (result)
                 database.Add((T)this);
+
+            UnifiedSystem.HandleObjectCreation<T>(this);
+
             return result;
         }
 
@@ -98,6 +111,9 @@ namespace LogicReinc.Data.Unified
             bool result = Provider.DeleteObject<T>(ObjectID);
             if (result)
                 database.Remove((T)this);
+            
+            UnifiedSystem.HandleObjectDeletion<T>(this);
+
             return result;
         }
 

@@ -27,8 +27,8 @@ namespace LogicReinc.Data.Unified
         public static Dictionary<Type, List<UnifiedIMReference>> TargetReferences { get; set; } = new Dictionary<Type, List<UnifiedIMReference>>();
         public static Dictionary<Type, List<UnifiedIMReference>> TypeReferences { get; set; } = new Dictionary<Type, List<UnifiedIMReference>>();
 
-        public static Dictionary<Type, List<string>> IndexProperties = new Dictionary<Type, List<string>>();
-        public static Dictionary<Type, ObjectIndex<IUnifiedIMObject>> Indexes { get; set; } = new Dictionary<Type, ObjectIndex<IUnifiedIMObject>>();
+        internal static Dictionary<Type, List<string>> IndexProperties = new Dictionary<Type, List<string>>();
+        internal static Dictionary<Type, ObjectIndex<IUnifiedIMObject>> Indexes { get; set; } = new Dictionary<Type, ObjectIndex<IUnifiedIMObject>>();
 
 
         public static Dictionary<string, IUnifiedIMObject> OmniBase { get; } = new Dictionary<string, IUnifiedIMObject>();
@@ -42,6 +42,19 @@ namespace LogicReinc.Data.Unified
                 object cVal = Property.Get(obj, property) ?? null;
                 pIndexes.RemoveIndex(property, oldValue, obj);
                 pIndexes.AddIndex(property, cVal, obj);
+            }
+        }
+
+        internal static void DeleteIndexes(IUnifiedIMObject obj)
+        {
+            if (Indexes.ContainsKey(obj.DataType))
+            {
+                ObjectIndex<IUnifiedIMObject> pIndexes = Indexes[obj.DataType];
+                foreach (string prop in pIndexes.Properties)
+                {
+                    object cVal = Property.Get(obj, prop) ?? null;
+                    pIndexes.RemoveIndex(prop, cVal, obj);
+                }
             }
         }
 
@@ -134,6 +147,8 @@ namespace LogicReinc.Data.Unified
                 UnifiedSystem.DeleteReferences(obj);
             if (UnifiedSystem.UseOmniBase)
                 UnifiedSystem.OmniBase.Remove(obj.ObjectID);
+            if (UnifiedSystem.AllowIndexes)
+                UnifiedSystem.DeleteIndexes(obj);
         }
 
         public static void RegisterType(Type type)
@@ -176,21 +191,22 @@ namespace LogicReinc.Data.Unified
 
         public static void DeleteReference(IUnifiedIMObject obj, UnifiedIMReference rf)
         {
-            lock (obj.ReferencedTo)
+            lock (obj.RefTo)
             {
                 if (rf.TargetType == obj.DataType)
                 {
-                    foreach (object o in obj.ReferencedTo)
+                    foreach (KeyValuePair<UnifiedIMReference, IUnifiedIMObject> o in obj.RefTo)
                     {
-                        if (o.GetType() == rf.HostType)
+                        if (o.Value.DataType == rf.HostType)
                         {
-                            object sProperty = rf.GetReferenceProperty(o);
+                            object sProperty = rf.GetReferenceProperty(o.Value);
                             if (typeof(IList).IsAssignableFrom(rf.SetPropertyType))
                                 ((IList)sProperty).Remove(obj);
                             else if (sProperty == obj)
-                                rf.SetReferenceProperty(o, null);
+                                rf.SetReferenceProperty(o.Value, null);
                         }
                     }
+                    obj.RefTo.RemoveAll(x => x.Key == rf);
                 }
                 else if(rf.HostType == obj.DataType)
                 {
@@ -198,10 +214,14 @@ namespace LogicReinc.Data.Unified
                     if (typeof(IList).IsAssignableFrom(rf.SetPropertyType))
                     {
                         foreach (object o in ((IList)sProperty))
-                            ((IUnifiedIMObject)o).ReferencedTo.Remove(obj);
+                            ((IUnifiedIMObject)o).RefTo.RemoveAll(x=>x.Key == rf && x.Value == obj);
+                        ((IList)sProperty).Clear();
                     }
                     else if (sProperty == obj)
-                        ((IUnifiedIMObject)sProperty).ReferencedTo.Remove(obj);
+                    {
+                        rf.SetReferenceProperty(obj, null);
+                        ((IUnifiedIMObject)sProperty).RefTo.RemoveAll(x => x.Key == rf && x.Value == obj);
+                    }
                 }
             }
         }
@@ -233,7 +253,7 @@ namespace LogicReinc.Data.Unified
                 {
                     reference.SetReferenceProperty(host, target);
                 }
-                target.ReferencedTo.Add(host);
+                target.RefTo.Add(new KeyValuePair<UnifiedIMReference, IUnifiedIMObject>(reference, host));
             }
             else
             {
@@ -251,7 +271,7 @@ namespace LogicReinc.Data.Unified
                     if(curVal == target)
                         reference.SetReferenceProperty(host, null);
                 }
-                target.ReferencedTo.Remove(host);
+                target.RefTo.RemoveAll(x=>x.Key == reference && x.Value == host);
             }
         }
 
@@ -305,7 +325,7 @@ namespace LogicReinc.Data.Unified
                 }
                 else
                 {
-                    if (AllowIndexes && Indexes.ContainsKey(type) && Indexes[type].HasTypeProperty(reference.HostProperty))
+                    if (AllowIndexes && Indexes.ContainsKey(reference.HostType) && Indexes[reference.HostType].HasTypeProperty(reference.HostProperty))
                     {
                         List<IUnifiedIMObject> objs = Indexes[reference.HostType].GetIndex(reference.HostProperty, reference.GetTargetProperty(obj));
                         foreach (object o in objs)
@@ -328,11 +348,11 @@ namespace LogicReinc.Data.Unified
                 }
                 else
                 {
-                    if(AllowIndexes && Indexes.ContainsKey(type) && Indexes[type].HasTypeProperty(reference.TargetProperty))
+                    if(AllowIndexes && Indexes.ContainsKey(reference.TargetType) && Indexes[reference.TargetType].HasTypeProperty(reference.TargetProperty))
                     {
                         List<IUnifiedIMObject> objs = Indexes[reference.TargetType].GetIndex(reference.TargetProperty, reference.GetHostProperty(obj));
                         foreach (object o in objs)
-                            UpdateReference(reference, (IUnifiedIMObject)o, obj);
+                            UpdateReference(reference, obj, (IUnifiedIMObject)o);
                     }
                     else if (_databaseGetters.ContainsKey(reference.TargetType))
                         foreach (object o in _databaseGetters[reference.TargetType])

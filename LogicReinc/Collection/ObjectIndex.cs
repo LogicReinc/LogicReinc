@@ -10,6 +10,7 @@ namespace LogicReinc.Collection
     {
         public Dictionary<string, Dictionary<object, List<T>>> indexes = new Dictionary<string, Dictionary<object, List<T>>>();
 
+        public List<string> Properties => indexes.Keys.ToList();
 
         public void RemoveIndex(string property, object value, T obj)
         {

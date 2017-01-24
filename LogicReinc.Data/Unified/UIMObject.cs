@@ -1,6 +1,8 @@
 ﻿using LogicReinc.Collections;
+using LogicReinc.Data.Unified.Attributes;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace LogicReinc.Data.Unified
 {
@@ -34,32 +37,46 @@ namespace LogicReinc.Data.Unified
                 {
                     if (!Loaded)
                         new UnifiedIMObject<T>().Load();
-                    database = new TSList<T>(Provider.GetAllObjects<T>());
-                    loaded = true;
+                    InitializeDatabase();
                 }
                 return database;
             }
         }
 
-        public Type DataType => typeof(T);
+        internal override Type DataType => typeof(T);
 
-        public IList DatabaseBase => (IList)Database;
-        public Dictionary<string, UIMPropertyState> PropertyStates { get; } = new Dictionary<string, UIMPropertyState>();
-        public List<IUnifiedIMObject> ReferencedTo { get; } = new List<IUnifiedIMObject>();
+        
+        internal override IList DatabaseBase => (IList)Database;
+        internal override Dictionary<string, UIMPropertyState> PropertyStates { get; } = new Dictionary<string, UIMPropertyState>();
+        internal override List<KeyValuePair<UnifiedIMReference, IUnifiedIMObject>> RefTo { get; } = new List<KeyValuePair<UnifiedIMReference, IUnifiedIMObject>>();
+
+        protected List<KeyValuePair<UnifiedIMReference, IUnifiedIMObject>> ReferenceTo => RefTo;
+
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public virtual string ObjectID { get; set; }
+        public override string ObjectID { get; set; }
+
+
+        private static void InitializeDatabase()
+        {
+            database = new TSList<T>(Provider.GetAllObjects<T>());
+
+            database.ForEach((x) =>
+            {
+                UnifiedSystem.HandleObjectCreation<T>(x);
+            });
+
+            loaded = true;
+        }
 
         public virtual bool Load()
         {
             bool b = Provider.LoadCollection<T>();
             if (b)
-            {
-                database = new TSList<T>(Provider.GetAllObjects<T>());
-                loaded = true;
-                UnifiedSystem.RegisterType(typeof(T));
-            }
+                InitializeDatabase();
+
+            UnifiedSystem.RegisterType(typeof(T));
             return b;
         }
 
@@ -116,6 +133,23 @@ namespace LogicReinc.Data.Unified
 
             return result;
         }
+
+
+
+        public static T GetObject(string id)
+        {
+            if (UnifiedSystem.UseOmniBase)
+            {
+                if (UnifiedSystem.OmniBase.ContainsKey(id))
+                    return (T)UnifiedSystem.OmniBase[id];
+                else
+                    return null;
+            }
+            else
+                return Database.FirstOrDefault(x => x.ObjectID == id);
+                
+        }
+
 
         //Utility
         public static void SetProvider(UnifiedDatabaseProvider p, bool loadDatabase = false)

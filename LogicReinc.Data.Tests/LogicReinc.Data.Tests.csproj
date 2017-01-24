@@ -65,7 +65,7 @@
     <Compile Include="MongoDB\MongoObject.cs" />
     <Compile Include="MSSQL\MSSQLObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Unified\IUnifiedIMObject.cs" />
+    <Compile Include="Unified\UnifiedFileIO.cs" />
     <Compile Include="Unified\UnifiedIMObject.cs" />
   </ItemGroup>
   <ItemGroup>

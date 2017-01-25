@@ -27,11 +27,10 @@ namespace LogicReinc.Data.Unified
         public static Dictionary<Type, List<UnifiedIMReference>> TargetReferences { get; set; } = new Dictionary<Type, List<UnifiedIMReference>>();
         public static Dictionary<Type, List<UnifiedIMReference>> TypeReferences { get; set; } = new Dictionary<Type, List<UnifiedIMReference>>();
 
-        internal static Dictionary<Type, List<string>> IndexProperties = new Dictionary<Type, List<string>>();
         internal static Dictionary<Type, ObjectIndex<IUnifiedIMObject>> Indexes { get; set; } = new Dictionary<Type, ObjectIndex<IUnifiedIMObject>>();
 
 
-        public static Dictionary<string, IUnifiedIMObject> OmniBase { get; } = new Dictionary<string, IUnifiedIMObject>();
+        internal static Dictionary<string, IUnifiedIMObject> OmniBase { get; } = new Dictionary<string, IUnifiedIMObject>();
         
 
         internal static void FixIndex(IUnifiedIMObject obj, Type t, string property, object oldValue)
@@ -104,7 +103,8 @@ namespace LogicReinc.Data.Unified
             if (UnifiedSystem.AllowReferences)
                 UnifiedSystem.ResolveReferences(obj, typeof(T));
             if (UnifiedSystem.UseOmniBase)
-                UnifiedSystem.OmniBase.Add(obj.ObjectID, obj);
+                lock (UnifiedSystem.OmniBase)
+                    UnifiedSystem.OmniBase.Add(obj.ObjectID, obj);
 
             if (UnifiedSystem.AllowReferences)
             {
@@ -146,47 +146,52 @@ namespace LogicReinc.Data.Unified
             if (UnifiedSystem.AllowReferences)
                 UnifiedSystem.DeleteReferences(obj);
             if (UnifiedSystem.UseOmniBase)
-                UnifiedSystem.OmniBase.Remove(obj.ObjectID);
+                lock (UnifiedSystem.OmniBase)
+                    UnifiedSystem.OmniBase.Remove(obj.ObjectID);
             if (UnifiedSystem.AllowIndexes)
                 UnifiedSystem.DeleteIndexes(obj);
         }
 
         public static void RegisterType(Type type)
         {
-            if (!_databaseGetters.ContainsKey(type))
-                _databaseGetters.Add(type, ((IUnifiedIMObject)Activator.CreateInstance(type)).DatabaseBase);
-            PropertyInfo[] props = type.GetPropertiesCached();
-
             if (AllowIndexes)
                 Indexes.Add(type, new ObjectIndex<IUnifiedIMObject>());
-            foreach (PropertyInfo prop in props)
+            if (AllowReferences)
             {
-                UnifiedIMReference reff = prop.GetCustomAttribute<UnifiedIMReference>();
-                if (reff != null)
+                PropertyInfo[] props = type.GetPropertiesCached();
+                foreach (PropertyInfo prop in props)
                 {
-                    if (reff.HostPropertyType == null)
-                        reff.HostPropertyType = props.FirstOrDefault(x => x.Name == reff.HostProperty)?.PropertyType;
-                    if (reff.HostType == null)
-                        reff.HostType = prop.DeclaringType;
-                    reff.SetProperty = prop.Name;
-                    reff.SetPropertyType = prop.PropertyType;
-                    if (reff.SetPropertyType == null)
-                        throw new ArgumentException("Set Property does not exist");
-                    References.Add(reff);
-                    if (!HostReferences.ContainsKey(type))
-                        HostReferences.Add(type, new List<UnifiedIMReference>());
-                    HostReferences[type].Add(reff);
-                    if (!TargetReferences.ContainsKey(reff.TargetType))
-                        TargetReferences.Add(reff.TargetType, new List<UnifiedIMReference>());
-                    TargetReferences[reff.TargetType].Add(reff);
-                    if (!TypeReferences.ContainsKey(reff.HostType))
-                        TypeReferences.Add(reff.HostType, new List<UnifiedIMReference>());
-                    if (!TypeReferences.ContainsKey(reff.TargetType))
-                        TypeReferences.Add(reff.TargetType, new List<UnifiedIMReference>());
-                    TypeReferences[reff.TargetType].Add(reff);
-                    TypeReferences[reff.HostType].Add(reff);
+                    UnifiedIMReference reff = prop.GetCustomAttribute<UnifiedIMReference>();
+                    if (reff != null)
+                    {
+                        if (reff.HostPropertyType == null)
+                            reff.HostPropertyType = props.FirstOrDefault(x => x.Name == reff.HostProperty)?.PropertyType;
+                        if (reff.HostType == null)
+                            reff.HostType = prop.DeclaringType;
+                        reff.SetProperty = prop.Name;
+                        reff.SetPropertyType = prop.PropertyType;
+                        if (reff.SetPropertyType == null)
+                            throw new ArgumentException("Set Property does not exist");
+                        References.Add(reff);
+                        if (!HostReferences.ContainsKey(type))
+                            HostReferences.Add(type, new List<UnifiedIMReference>());
+                        HostReferences[type].Add(reff);
+                        if (!TargetReferences.ContainsKey(reff.TargetType))
+                            TargetReferences.Add(reff.TargetType, new List<UnifiedIMReference>());
+                        TargetReferences[reff.TargetType].Add(reff);
+                        if (!TypeReferences.ContainsKey(reff.HostType))
+                            TypeReferences.Add(reff.HostType, new List<UnifiedIMReference>());
+                        if (!TypeReferences.ContainsKey(reff.TargetType))
+                            TypeReferences.Add(reff.TargetType, new List<UnifiedIMReference>());
+                        TypeReferences[reff.TargetType].Add(reff);
+                        TypeReferences[reff.HostType].Add(reff);
+                    }
                 }
             }
+
+            if (!_databaseGetters.ContainsKey(type))
+                _databaseGetters.Add(type, ((IUnifiedIMObject)Activator.CreateInstance(type)).DatabaseBase);
+            
         }
 
         public static void DeleteReference(IUnifiedIMObject obj, UnifiedIMReference rf)
@@ -246,7 +251,7 @@ namespace LogicReinc.Data.Unified
                     IList list = (IList)reference.GetReferenceProperty(host);
                     if (list == null)
                         throw new ArgumentException("Reference Lists should be initiated with an instance. And never be null");
-                    if (!list.Contains(target))
+                    //if (!list.Contains(target))
                         list.Add(target);
                 }
                 else
@@ -262,7 +267,7 @@ namespace LogicReinc.Data.Unified
                     IList list = (IList)reference.GetReferenceProperty(host);
                     if (list == null)
                         throw new ArgumentException("Reference Lists should be initiated with an instance. And never be null");
-                    if (list.Contains(target))
+                    //if (list.Contains(target))
                         list.Remove(target);
                 }
                 else
@@ -320,8 +325,19 @@ namespace LogicReinc.Data.Unified
                 if (UseOmniBase && reference.HostProperty == "ObjectID")
                 {
                     string od = (string)reference.GetTargetProperty(obj);
-                    if (od != null && OmniBase.ContainsKey(od))
-                        UpdateReference(reference, OmniBase[od], obj);
+                    if (od != null)
+                    {
+                        bool hasKey = false;
+                        IUnifiedIMObject omniObj = null;
+                        lock (UnifiedSystem.OmniBase)
+                        {
+                            hasKey = UnifiedSystem.OmniBase.ContainsKey(od);
+                            if(hasKey)
+                                omniObj = OmniBase[od];
+                        }
+                        if(hasKey)
+                        UpdateReference(reference, omniObj, obj);
+                    }
                 }
                 else
                 {
@@ -342,9 +358,20 @@ namespace LogicReinc.Data.Unified
             {
                 if (UseOmniBase && reference.TargetProperty == "ObjectID")
                 {
-                    string od = (string)reference.GetTargetProperty(obj);
-                    if (OmniBase.ContainsKey(od))
-                        UpdateReference(reference, obj, OmniBase[od]);
+                    string od = (string)reference.GetHostProperty(obj);
+                    if (od != null)
+                    {
+                        bool hasKey = false;
+                        IUnifiedIMObject omniObj = null;
+                        lock (UnifiedSystem.OmniBase)
+                        {
+                            hasKey = UnifiedSystem.OmniBase.ContainsKey(od);
+                            if (hasKey)
+                                omniObj = OmniBase[od];
+                        }
+                        if (hasKey)
+                            UpdateReference(reference, obj, omniObj);
+                    }
                 }
                 else
                 {

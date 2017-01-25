@@ -80,6 +80,7 @@
     <Compile Include="Security\TokenSystem\TokenSystem.cs" />
     <Compile Include="SyntaxSugar\Switcher.cs" />
     <Compile Include="SyntaxSugar\Try.cs" />
+    <Compile Include="Threading\RWLock.cs" />
     <Compile Include="Threading\Worker.cs" />
     <Compile Include="Threading\WorkerPool.cs" />
     <Compile Include="Threading\WorkTask.cs" />

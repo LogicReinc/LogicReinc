@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogicReinc.Threading;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace LogicReinc.Collections
 {
     public class TSList<T> : IEnumerable<T>, IList, IList<T>
     {
+        private RWLock locker = new RWLock();
         private List<T> list = new List<T>();
 
         public TSList()
@@ -17,6 +19,406 @@ namespace LogicReinc.Collections
         }
 
         public TSList(List<T> list)
+        {
+            this.list = list;
+        }
+
+        //Properties
+        public int Length
+        {
+            get
+            {
+                return list.Count;
+            }
+        }
+
+
+
+
+
+
+        //Properties Inherited
+        int ICollection<T>.Count
+        {
+            get
+            {
+                return list.Count;
+            }
+        }
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+        public bool IsFixedSize
+        {
+            get
+            {
+                return false;
+            }
+        }
+        int ICollection.Count
+        {
+            get
+            {
+                return list.Count;
+            }
+        }
+        public object SyncRoot => false;
+        public bool IsSynchronized => false;
+        object IList.this[int index]
+        {
+            get
+            {
+                return locker.ReadLock(() => list[index]);
+            }
+
+            set
+            {
+                locker.WriteLock(() => list[index] = (T)value);
+            }
+        }
+        public T this[int index]
+        {
+            get
+            {
+                return locker.ReadLock(() => list[index]);
+            }
+
+            set
+            {
+                locker.WriteLock(() => list[index] = value);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+        //Selectors
+        public void Lock(Action<List<T>> action)
+        {
+            locker.WriteLock(() => action(list));
+        }
+
+        public List<R> Select<R>(Func<T, R> selector)
+        {
+            List<R> nList = new List<R>();
+            locker.ReadLock(() =>
+            {
+                foreach (T item in list)
+                    nList.Add(selector(item));
+            });
+            return nList;
+        }
+
+        public List<T> Where(Func<T, bool> selector)
+        {
+            List<T> nList = new List<T>();
+            locker.ReadLock(() =>
+            {
+                foreach (T item in list)
+                {
+                    if (selector(item))
+                        nList.Add(item);
+                }
+            });
+            return nList;
+        }
+
+        public T Single(Func<T, bool> condition)
+        {
+            int count = Count(condition);
+            if (count > 1)
+                throw new Exception("Multiple entries found matching condition.");
+            else if (count == 0)
+                throw new Exception("No entry found matching condition.");
+            else
+            {
+                return locker.ReadLock(() =>
+                {
+                    foreach (T item in list)
+                    {
+                        if (condition(item))
+                            return item;
+                    }
+                    throw new Exception("No entry found matching condition.");
+                });
+            }
+
+        }
+
+        public T FirstOrDefault(Func<T, bool> condition)
+        {
+            return locker.ReadLock(() =>
+            {
+                foreach (T item in list)
+                {
+                    if (condition(item))
+                        return item;
+                }
+
+                return default(T);
+            });
+        }
+        public T SingleOrDefault(Func<T, bool> condition)
+        {
+            int count = Count(condition);
+            if (count > 1)
+                throw new Exception("Multiple entries found matching condition.");
+            else if (count == 0)
+                return default(T);
+            else
+            {
+                return locker.ReadLock(() =>
+                {
+                    foreach (T item in list)
+                    {
+                        if (condition(item))
+                            return item;
+                    }
+                    return default(T);
+                });
+            }
+
+        }
+
+        public T[] ToArray()
+        {
+            return locker.ReadLock(() =>
+            {
+                return list.ToArray();
+            });
+        }
+
+        public List<T> ToList()
+        {
+            return locker.ReadLock(() =>
+            {
+                return list.ToList();
+            });
+        }
+
+        public void ForEach(Action<T> feachAction)
+        {
+            locker.ReadLock(() =>
+            {
+                foreach (T item in list)
+                    feachAction(item);
+            });
+        }
+
+        public int Count(Func<T, bool> selector)
+        {
+            int i = 0;
+            locker.ReadLock(() =>
+            {
+                foreach (T item in list)
+                {
+                    if (selector(item))
+                        i++;
+                }
+            });
+            return i;
+        }
+
+        public bool Contains(T obj)
+        {
+            return locker.ReadLock(() =>
+            {
+                return list.Contains(obj);
+            });
+        }
+        public bool Contains(Func<T, bool> selector)
+        {
+            return locker.ReadLock(() =>
+            {
+                foreach (T item in list)
+                {
+                    if (selector(item))
+                        return true;
+                }
+                return false;
+            });
+        }
+
+        //Modifiers
+        public void Add(T item)
+        {
+            locker.WriteLock(() =>
+            {
+                list.Add(item);
+            });
+        }
+        public void Add(List<T> items)
+        {
+            locker.WriteLock(() =>
+            {
+                list.AddRange(items);
+            });
+        }
+
+        public void Remove(T item)
+        {
+            locker.WriteLock(() =>
+            {
+                list.Remove(item);
+            });
+        }
+        public void Remove(Func<T, bool> selector)
+        {
+            locker.WriteLock(() =>
+            {
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    if (selector(list[i]))
+                        list.RemoveAt(i);
+                }
+            });
+        }
+
+        public void Set(List<T> list)
+        {
+            locker.WriteLock(() =>
+            {
+                this.list = list;
+            });
+        }
+
+        public List<T> Query(Func<List<T>, List<T>> query)
+        {
+            return locker.ReadLock(() =>
+            {
+                return query(this.list);
+            });
+        }
+
+        
+
+        //Interface
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ToList().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ToList().GetEnumerator();
+        }
+
+        //IList<T> Inherited
+        public int IndexOf(T item)
+        {
+            return locker.ReadLock(() =>
+            {
+                return list.IndexOf(item);
+            });
+        }
+        public void Insert(int index, T item)
+        {
+            locker.WriteLock(() =>
+            {
+                list.Insert(index, item);
+            });
+        }
+        public void RemoveAt(int index)
+        {
+            locker.WriteLock(() =>
+            {
+                list.RemoveAt(index);
+            });
+        }
+        public void Clear()
+        {
+            locker.WriteLock(() =>
+            {
+                list.Clear();
+            });
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            locker.ReadLock(() =>
+            {
+                list.CopyTo(array, arrayIndex);
+            });
+        }
+        bool ICollection<T>.Remove(T item)
+        {
+            return locker.WriteLock(() =>
+            {
+                return list.Remove(item);
+            });
+        }
+
+
+        //IList Inherited
+        public int Add(object value)
+        {
+            return locker.WriteLock(() =>
+            {
+                list.Add((T)value);
+                return list.IndexOf((T)value);
+            });
+        }
+        public bool Contains(object value)
+        {
+            return locker.ReadLock(() =>
+            {
+                return Contains((T)value);
+            });
+        }
+        public int IndexOf(object value)
+        {
+            return locker.ReadLock(() =>
+            {
+                return list.IndexOf((T)value);
+            });
+        }
+        public void Insert(int index, object value)
+        {
+            locker.WriteLock(() =>
+            {
+                list.Insert(index, (T)value);
+            });
+        }
+        public void Remove(object value)
+        {
+            locker.WriteLock(() =>
+            {
+                list.Remove((T)value);
+            });
+        }
+        public void CopyTo(Array array, int index)
+        {
+            locker.ReadLock(() =>
+            {
+                list.CopyTo((T[])array, index);
+            });
+        }
+    }
+}
+
+
+namespace LogicReinc.Collections
+{
+    public class OldTSList<T> : IEnumerable<T>, IList, IList<T>
+    {
+        private List<T> list = new List<T>();
+
+        public OldTSList()
+        {
+
+        }
+
+        public OldTSList(List<T> list)
         {
             this.list = list;
         }
@@ -107,7 +509,7 @@ namespace LogicReinc.Collections
         //Selectors
         public void Lock(Action<List<T>> action)
         {
-            lock(list)
+            lock (list)
             {
                 action(list);
             }
@@ -204,7 +606,7 @@ namespace LogicReinc.Collections
 
         public List<T> ToList()
         {
-            lock(list)
+            lock (list)
             {
                 return list.ToList();
             }
@@ -261,7 +663,7 @@ namespace LogicReinc.Collections
         }
         public void Add(List<T> items)
         {
-            lock(list)
+            lock (list)
             {
                 list.AddRange(items);
             }
@@ -296,13 +698,13 @@ namespace LogicReinc.Collections
 
         public List<T> Query(Func<List<T>, List<T>> query)
         {
-            lock(this.list)
+            lock (this.list)
             {
                 return query(this.list);
             }
         }
 
-        
+
 
         //Interface
         public IEnumerator<T> GetEnumerator()
@@ -352,8 +754,8 @@ namespace LogicReinc.Collections
         //IList Inherited
         public int Add(object value)
         {
-            lock(list)
-            list.Add((T)value);
+            lock (list)
+                list.Add((T)value);
             return IndexOf(value);
         }
         public bool Contains(object value)

@@ -16,7 +16,7 @@ namespace LogicReinc.Data.Tests.Unified
     [TestClass]
     public class UnifiedIMObjectTests
     {
-        const bool InitialSet = false;
+        const bool InitialSet = true;
 
         [ClassInitialize]
         public static void Init(TestContext context)
@@ -42,12 +42,13 @@ namespace LogicReinc.Data.Tests.Unified
                 }.Insert();
             }
         }
+        
 
         [ClassCleanup]
         public static void CleanUp()
         {
-            //UIMTestObject.ClearDatabase();
-            //UIMTestObject2.ClearDatabase();
+            UIMTestObject.ClearDatabase();
+            UIMTestObject2.ClearDatabase();
         }
 
         [TestMethod]
@@ -55,6 +56,19 @@ namespace LogicReinc.Data.Tests.Unified
         {
             Console.WriteLine("Initialized");
         }
+
+        [TestMethod]
+        public void IndexedWhere()
+        {
+
+            for(int i = 0; i < 1000000;i ++)
+            {
+                var data = UIMTestObject.WhereIndexed("IntegerProperty" , i);
+            }
+
+
+        }
+
 
         [TestMethod]
         public void ReferenceTest()
@@ -181,6 +195,9 @@ namespace LogicReinc.Data.Tests.Unified
         [TestMethod]
         public void TestInsertSpeed()
         {
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+
             Random r = new Random();
             for (int i = 0; i < 10000; i++)
                 new UIMTestObject2()
@@ -189,6 +206,8 @@ namespace LogicReinc.Data.Tests.Unified
                     StringProperty = UIMTestObject.Database[r.Next(UIMTestObject.Database.Length)].ObjectID
                 }.Insert();
 
+            watch.Stop();
+            Console.WriteLine($"{(double)watch.ElapsedTicks / TimeSpan.TicksPerMillisecond} - {watch.ElapsedMilliseconds}");
         }
 
         [TestMethod]
@@ -263,6 +282,21 @@ namespace LogicReinc.Data.Tests.Unified
             Assert.IsTrue(obj.Insert(), "Insertion failed");
             Assert.IsTrue(UIMTestObject.DeleteObject(obj.ObjectID), "Deletion failed");
             Assert.IsNull(UIMTestObject.GetObject(obj.ObjectID), "Object still present");
+
+            
+            List<UIMTestObject2> objs = new List<UIMTestObject2>();
+            for (int i = 0; i < 10000; i++)
+            {
+                UIMTestObject2 o = new UIMTestObject2();
+                o.IntegerProperty = i;
+                o.Insert();
+            }
+
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            UIMTestObject2.ClearDatabase();
+            watch.Stop();
+            Console.WriteLine($"{watch.ElapsedMilliseconds}");
         }
         [TestMethod]
         public void Update()
@@ -299,8 +333,21 @@ namespace LogicReinc.Data.Tests.Unified
 
             Assert.IsTrue(obj.Insert(), "Insertion failed");
 
+
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            for (int i = 0; i < 10000; i++)
+            {
+
+                obj.IntegerProperty = i;
+                obj.Update();
+            }
+            watch.Stop();
+            Console.WriteLine($"{watch.ElapsedTicks / TimeSpan.TicksPerMillisecond} - {watch.ElapsedMilliseconds}");
+
+
             obj.IntegerProperty = 1234;
-            if(UIMTestObject.Database.Length > 2)
+            if (UIMTestObject.Database.Length > 2)
                 obj.StringProperty = UIMTestObject.Database[2].ObjectID;
             //obj.ObjList[0].IntegerProperty = 12345;
             obj.Update();

@@ -1,4 +1,5 @@
-﻿using LogicReinc.Collections;
+﻿using LogicReinc.Collection;
+using LogicReinc.Collections;
 using LogicReinc.Data.Unified.Attributes;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -7,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +22,7 @@ namespace LogicReinc.Data.Unified
     /// <typeparam name="T">Inheritted type</typeparam>
     public class UnifiedIMObject<T> : IUnifiedIMObject where T : UnifiedIMObject<T>
     {
+        protected static bool initializing = false;
         protected static bool loaded = false;
         public static bool Loaded { get { return loaded; } }
 
@@ -43,9 +46,21 @@ namespace LogicReinc.Data.Unified
             }
         }
 
+        protected static ObjectIndex<IUnifiedIMObject> Index
+        {
+            get
+            {
+                if (!UnifiedSystem.AllowIndexes)
+                    throw new Exception("Indexes for the Unified framework are disabled");
+                if (!UnifiedSystem.Indexes.ContainsKey(typeof(T)))
+                    throw new KeyNotFoundException("This type has no registered indexes");
+                return UnifiedSystem.Indexes[typeof(T)];
+            }
+        }
+
         internal override Type DataType => typeof(T);
 
-        
+
         internal override IList DatabaseBase => (IList)Database;
         internal override Dictionary<string, UIMPropertyState> PropertyStates { get; } = new Dictionary<string, UIMPropertyState>();
         internal override List<KeyValuePair<UnifiedIMReference, IUnifiedIMObject>> RefTo { get; } = new List<KeyValuePair<UnifiedIMReference, IUnifiedIMObject>>();
@@ -72,12 +87,16 @@ namespace LogicReinc.Data.Unified
 
         public virtual bool Load()
         {
-            bool b = Provider.LoadCollection<T>();
-            if (b)
-                InitializeDatabase();
-
-            UnifiedSystem.RegisterType(typeof(T));
-            return b;
+            if (!initializing)
+            {
+                initializing = true;
+                bool b = Provider.LoadCollection<T>();
+                UnifiedSystem.RegisterType(typeof(T));
+                if (b && !loaded)
+                    InitializeDatabase();
+                return b;
+            }
+            return true;
         }
 
         public virtual bool Update()
@@ -128,7 +147,7 @@ namespace LogicReinc.Data.Unified
             bool result = Provider.DeleteObject<T>(ObjectID);
             if (result)
                 database.Remove((T)this);
-            
+
             UnifiedSystem.HandleObjectDeletion<T>(this);
 
             return result;
@@ -140,16 +159,21 @@ namespace LogicReinc.Data.Unified
         {
             if (UnifiedSystem.UseOmniBase)
             {
-                if (UnifiedSystem.OmniBase.ContainsKey(id))
-                    return (T)UnifiedSystem.OmniBase[id];
-                else
-                    return null;
+                lock (UnifiedSystem.OmniBase)
+                    if (UnifiedSystem.OmniBase.ContainsKey(id))
+                        return (T)UnifiedSystem.OmniBase[id];
+                    else
+                        return null;
             }
             else
                 return Database.FirstOrDefault(x => x.ObjectID == id);
-                
+
         }
 
+        public static List<T> WhereIndexed(string property, object value)
+        {
+            return Index.GetIndex(property, value).Cast<T>().ToList();
+        }
 
         //Utility
         public static void SetProvider(UnifiedDatabaseProvider p, bool loadDatabase = false)

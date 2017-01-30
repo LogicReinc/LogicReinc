@@ -61,6 +61,7 @@ namespace LogicReinc.Data.Tests.Unified
         public void IndexedWhere()
         {
 
+            var d1 = UIMTestObject.WhereIndexed("StringProperty", "Testing");
             for(int i = 0; i < 1000000;i ++)
             {
                 var data = UIMTestObject.WhereIndexed("IntegerProperty" , i);
@@ -385,6 +386,7 @@ namespace LogicReinc.Data.Tests.Unified
         {
             public int IntegerProperty { get; set; }
 
+            [UnifiedIMIndex]
             public string StringProperty { get; set; }
             public double DoubleProperty { get; set; }
 

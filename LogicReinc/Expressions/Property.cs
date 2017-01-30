@@ -13,8 +13,8 @@ namespace LogicReinc.Expressions
 {
     public class Property
     {
-        private static DualDictionary<Type, string, Func<object, object>> _cachedGetters = new DualDictionary<Type, string, Func<object, object>>(true);
-        private static DualDictionary<Type, string, Action<object, object>> _cachedSetters = new DualDictionary<Type, string, Action<object, object>>(true);
+        private static TSDualDictionary<Type, string, Func<object, object>> _cachedGetters = new TSDualDictionary<Type, string, Func<object, object>>(true);
+        private static TSDualDictionary<Type, string, Action<object, object>> _cachedSetters = new TSDualDictionary<Type, string, Action<object, object>>(true);
 
 
         static AssemblyBuilder _assembly = Thread.GetDomain().DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndSave);
@@ -68,8 +68,8 @@ namespace LogicReinc.Expressions
 
         public static Func<object, object> BuildPropertyGetter(string property, Type type, bool cache = false)
         {
-            if (cache && _cachedGetters.ContainsKey(type, property))
-                return _cachedGetters[type, property];
+                if (cache && _cachedGetters.ContainsKey(type, property))
+                    return _cachedGetters[type, property];
 
             PropertyInfo prop = type.GetProperty(property);
             if (prop == null)

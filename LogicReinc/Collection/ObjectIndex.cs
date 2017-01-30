@@ -42,9 +42,12 @@ namespace LogicReinc.Collection
                     indexes.Add(property, new Dictionary<object, List<T>>());
                 Dictionary<object, List<T>> pIndex = indexes[property];
 
-                if (!pIndex.ContainsKey(value))
-                    pIndex.Add(value, new List<T>());
-                pIndex[value].Add(obj);
+                if (value != null)
+                {
+                    if (!pIndex.ContainsKey(value))
+                        pIndex.Add(value, new List<T>());
+                    pIndex[value].Add(obj);
+                }
             }
             finally
             {

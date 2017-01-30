@@ -215,6 +215,14 @@ namespace LogicReinc.Collections
             });
         }
 
+        public void ParallelForeach(Action<T> feachAction, int cap = 8)
+        {
+            locker.ReadLock(() =>
+            {
+                Parallel.ForEach<T>(list, new ParallelOptions() { MaxDegreeOfParallelism = cap }, feachAction);
+            });
+        }
+
         public int Count(Func<T, bool> selector)
         {
             int i = 0;

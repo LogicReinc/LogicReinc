@@ -18,5 +18,31 @@ namespace LogicReinc.Extensions
                     return false;
             return true;
         }
+
+        public static int FindSequence(this byte[] bytes, byte[] sequence, int start = 0)
+        {
+            int end = bytes.Length - sequence.Length;
+            byte firstByte = sequence[0];
+
+            while (start < end)
+            {
+                if (bytes[start] == firstByte)
+                {
+                    for (int offset = 1; offset < sequence.Length; ++offset)
+                    {
+                        if (bytes[start + offset] != sequence[offset])
+                        {
+                            break;
+                        }
+                        else if (offset == sequence.Length - 1)
+                        {
+                            return start;
+                        }
+                    }
+                }
+                ++start;
+            }
+            return -1;
+        }
     }
 }

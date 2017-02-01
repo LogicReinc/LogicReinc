@@ -11,8 +11,6 @@ namespace LogicReinc.Tests.Experimenting
     [TestClass]
     public class Experimenting
     {
-
-
         
     }
 }

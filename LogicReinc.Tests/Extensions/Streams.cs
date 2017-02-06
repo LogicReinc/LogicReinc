@@ -36,8 +36,6 @@ namespace LogicReinc.Tests.Extensions
                 Console.WriteLine(string.Join(", ", bytes));
                 Console.WriteLine(string.Join(", ", outStr.ToArray()));
             }
-
-
         }
 
     }

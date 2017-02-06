@@ -55,6 +55,7 @@
     <Compile Include="Expressions\MethodTests.cs" />
     <Compile Include="Expressions\Property.cs" />
     <Compile Include="Extensions\Streams.cs" />
+    <Compile Include="IO\PatternizedStreamTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

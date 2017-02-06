@@ -67,6 +67,7 @@
     <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="Files\FileType.cs" />
     <Compile Include="Images\Images.cs" />
+    <Compile Include="IO\PatternizedStream.cs" />
     <Compile Include="Languages\Javascript\Builder\IJSBComponent.cs" />
     <Compile Include="Languages\Javascript\Builder\JSBCollection.cs" />
     <Compile Include="Languages\Javascript\Builder\JSBFunction.cs" />

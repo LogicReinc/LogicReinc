@@ -36,7 +36,7 @@ namespace LogicReinc.Data.MySQL
 
         protected static string Join => string.Join(" ", Descriptor.Joins.Select(x => x.Join));
         protected static ColumnProperty PrimaryKey => Columns.FirstOrDefault(x => x.Column.IsPrimaryKey);
-        protected static string[] ColumnNames => Columns.Select(x => x.Column.Name).ToArray();
+        protected static string[] ColumnNames => Columns.Select(x => x.Name).ToArray();
 
 
         //Manipulation
@@ -45,12 +45,24 @@ namespace LogicReinc.Data.MySQL
             Dictionary<string, object> fields = new Dictionary<string, object>();
 
             foreach (ColumnProperty prop in Columns)
-                if (!prop.Column.IsAutoNumbering)
-                    fields.Add(prop.Name, prop.Info.GetValue(this));
+            {
+                object val = prop.GetValue(this);
+                if (prop.HasAttribute && prop.Column.IsAutoGuid && val == null)
+                    prop.SetValue(this, Guid.NewGuid().ToString("N"));
+                if (!prop.HasAttribute || !prop.Column.IsAutoNumbering)
+                    fields.Add(prop.Name, val);
+            }
 
             MySqlCommand com = MySQLBuilder.Static.InsertBuilder(Descriptor.Table, fields);
             
-            return (SQL.ExecuteQuery(com) > 0);
+            int result = SQL.ExecuteQuery(com);
+            if(result > 0)
+            {
+                ColumnProperty pk = PrimaryKey;
+                if (pk.HasAttribute && pk.Column.IsAutoNumbering)
+                    pk.SetValue(this, com.LastInsertedId);
+            }
+            return result > 0;
         }
         public bool Update()
         {
@@ -95,6 +107,11 @@ namespace LogicReinc.Data.MySQL
                 MySQLBuilder.Static.DeleteBuilder(Descriptor.Table, primaryKey.Name, primaryKey.Info.GetValue(this))) > 0;
         }
 
+
+        public static bool Synchronize()
+        {
+            return SQL.SyncObjectToTable(Descriptor.Table, typeof(T));
+        }
 
         //Single
         public static T GetObject(object primaryKey)

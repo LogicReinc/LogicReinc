@@ -31,14 +31,14 @@ namespace LogicReinc.Data.SQL
                 if (Info == null)
                     return sqlType;
                 if (string.IsNullOrEmpty(sqlType))
-                    sqlType = Helper.GetSqlType(Info.PropertyType);
+                    sqlType = Helper.GetSqlType(Info.PropertyType, Column);
                 return sqlType;
             }
         }
 
         public ColumnAttribute Column { get; private set; }
 
-        private ColumnProperty(ISQLHelper helper, PropertyInfo info, string type, bool primaryKey = false)
+        private ColumnProperty(ISQLHelper helper, PropertyInfo info, bool primaryKey = false)
         {
             Info = info;
             Helper = helper;
@@ -72,7 +72,6 @@ namespace LogicReinc.Data.SQL
         public void SetValue(object instance, object val)
         {
             Property.Set(instance, Info.Name, val);
-            //Info.SetValue(instance, val, null);
         }
 
         public object GetValue(object instance)
@@ -93,11 +92,11 @@ namespace LogicReinc.Data.SQL
                 {
                     if (SQLHelper.IsSupportedType(info.PropertyType))
                     {
-                        ColumnProperty column = new ColumnProperty(helper, info, helper.GetSqlType(info.PropertyType));
+                        ColumnProperty column = new ColumnProperty(helper, info);
                         if (column.HasAttribute)
                             columns.Add(column.Name, column);
                         else if (allProps)
-                            columns.Add(info.Name, new ColumnProperty(helper, info, helper.GetSqlType(info.PropertyType), primaryKeys.Contains(info.Name)));
+                            columns.Add(info.Name, new ColumnProperty(helper, info, primaryKeys.Contains(info.Name)));
                     }
                 }
                 Cache.Add(type, columns);

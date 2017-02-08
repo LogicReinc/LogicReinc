@@ -67,7 +67,12 @@ namespace LogicReinc.Data.FileIO
             string col = UnifiedCollectionAttribute.GetCollection<T>();
             List<T> objs = new List<T>();
             foreach (FileInfo f in new DirectoryInfo(GetCollectionPath(col)).GetFiles())
-                objs.Add(JsonConvert.DeserializeObject<T>(File.ReadAllText(f.FullName)));
+            {
+                T obj = JsonConvert.DeserializeObject<T>(File.ReadAllText(f.FullName));
+                if(obj != null)
+                    objs.Add(obj);
+            }
+            
             return objs;
         }
 

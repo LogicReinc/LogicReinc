@@ -12,7 +12,7 @@ namespace LogicReinc.Data.Unified
         {
             LastState = val;
         }
-
+        private object _lock = new object(); 
         public object LastState { get; set; }
 
         public bool HasChanged(object val)
@@ -24,7 +24,7 @@ namespace LogicReinc.Data.Unified
 
         public bool HasChangedAndUpdate(object val, Action<object, object> updateLock = null)
         {
-            lock (LastState)
+            lock (_lock)
             {
                 if (LastState != val)
                 {

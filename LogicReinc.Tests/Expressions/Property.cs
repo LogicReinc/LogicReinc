@@ -46,14 +46,14 @@ namespace LogicReinc.Tests.Expressions
         public void BuildPropertyGetter()
         {
             object getter;
-            for(int i = 0; i < _testItterations; i++)
+            //for(int i = 0; i < _testItterations; i++)
                 getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass));
         }
         [TestMethod]
         public void BuildPropertyGetterCached()
         {
             object getter;
-            for (int i = 0; i < _testItterations; i++)
+            //for (int i = 0; i < _testItterations; i++)
                 getter = Property.BuildPropertyGetter("SomeName", typeof(TestClass), true);
         }
 
@@ -61,7 +61,7 @@ namespace LogicReinc.Tests.Expressions
         public void BuildPropertyGetterPrimitive()
         {
             object getter;
-            for (int i = 0; i < _testItterations; i++)
+            //for (int i = 0; i < _testItterations; i++)
                 getter = Property.BuildPropertyGetter("Primitive", typeof(TestClass));
         }
 

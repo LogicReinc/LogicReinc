@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogicReinc.Data.SQL.Attributes
 {
-    public class DBObjectDescriptorAttribute
+    public class DBObjectDescriptorAttribute : Attribute
     {
         public string Table { get; private set; }
         public string PrimaryKey { get; set; }
@@ -19,7 +19,7 @@ namespace LogicReinc.Data.SQL.Attributes
 
         public static DBObjectDescriptorAttribute GetAttribute(Type info)
         {
-            object[] attrs = info.GetCustomAttributes(typeof(ColumnAttribute), false);
+            object[] attrs = info.GetCustomAttributes(typeof(DBObjectDescriptorAttribute), false);
 
             if (attrs.Length == 0)
                 return null;

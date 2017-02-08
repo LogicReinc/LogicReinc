@@ -60,7 +60,7 @@ namespace LogicReinc.Data.MySQL
                 if (prop.Name == "ObjectID")
                     prop.OverrideSqlType("char(32)");
                 else
-                    prop.OverrideSqlType(MySQLHelper.Instance.GetSqlType(prop.Type));
+                    prop.OverrideSqlType(MySQLHelper.Instance.GetSqlType(prop.Type, prop.Column));
             }
 
             if(!MySQLTable.GetTables(SQL).Contains(collection))
@@ -78,14 +78,26 @@ namespace LogicReinc.Data.MySQL
                     if(existing == null)
                     {
                         Console.WriteLine($"SQL missing Column {col.Name}... Adding");
-                        if (!MySQLTable.AddColumn(SQL, collection, col.Name, col.SqlType))
-                            throw new Exception($"Failed to add collumn {col.Name}");
+                        try
+                        {
+                            MySQLTable.AddColumn(SQL, collection, col.Name, col.SqlType);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"Failed to add collumn {col.Name}\n{ex.Message}");
+                        }
                     }
                     else if(!existing.SqlType.StartsWith(col.SqlType))
                     {
                         Console.WriteLine($"SQL incorrect Column Type for {col.Name}... Converting");
-                        if (!MySQLTable.ConvertColumn(SQL, collection, col.Name, col.SqlType))
-                            throw new Exception($"Failed to convert collumn {col.Name}");
+                        try
+                        {
+                            MySQLTable.ConvertColumn(SQL, collection, col.Name, col.SqlType);
+                        }
+                        catch(Exception ex)
+                        {
+                            throw new Exception($"Failed to convert collumn {col.Name}\n{ex.Message}");
+                        }
                     }
                     if (existing != null)
                         todo.Remove(existing);
@@ -93,8 +105,14 @@ namespace LogicReinc.Data.MySQL
                 foreach(ColumnProperty prop in todo)
                 {
                     Console.WriteLine($"Excess collumn {prop.Name}... Removing");
-                    if (!MySQLTable.RemoveColumn(SQL, collection, prop.Name))
-                        throw new Exception($"Failed to remove collumn {prop.Name}");
+                    try
+                    {
+                        MySQLTable.RemoveColumn(SQL, collection, prop.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Failed to remove collumn {prop.Name}\n{ex.Message}");
+                    }
                 }
             }
 

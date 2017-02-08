@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LogicReinc.Data.SQL.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace LogicReinc.Data.SQL.Utility
     public interface ISQLHelper
     {
         bool IsSupportedType(Type t);
-        string GetSqlType(Type t);
+        string GetSqlType(Type t, ColumnAttribute attribute);
         string ToSqlValue(object input, Type type = null);
     }
 
@@ -29,24 +30,6 @@ namespace LogicReinc.Data.SQL.Utility
         public static bool IsSupportedType(Type t)
         {
             return _supportedTypes.Contains(t);
-        }
-        
-        public static string ToSQLValue(object input, Type type = null)
-        {
-            if (input == null)
-                return "NULL";
-            Type t = input.GetType();
-            if (t == typeof(bool))
-                return ((bool)input) ? "1" : "0";
-            if (t == typeof(string))
-                return $"'{input}'";
-            if (t == typeof(byte) || t == typeof(char) || t == typeof(short) || t == typeof(int) || t == typeof(long))
-                return $"{input}";
-            if (t == typeof(double))
-                return $"{input}".Replace(",", ".");
-            if (t == typeof(DateTime))
-                return $"'{((DateTime)input).ToString()}'";
-            return "NULL";
         }
     }
 }

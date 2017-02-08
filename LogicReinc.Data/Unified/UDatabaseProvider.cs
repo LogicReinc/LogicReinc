@@ -9,6 +9,7 @@ namespace LogicReinc.Data.Unified
     public interface UnifiedDatabaseProvider
     {
         string DatabaseName { get; }
+        bool GenerateID { get; }
 
         bool LoadCollection<C>() where C : UnifiedIMObject<C>;
 

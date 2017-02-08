@@ -64,6 +64,9 @@
   <ItemGroup>
     <Compile Include="MongoDB\MongoObject.cs" />
     <Compile Include="MSSQL\MSSQLObject.cs" />
+    <Compile Include="MySQL\MySqlObjectTests.cs" />
+    <Compile Include="MySQL\MySQLProviderTests.cs" />
+    <Compile Include="MySQL\MySQLTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Unified\UnifiedFileIO.cs" />
     <Compile Include="Unified\UnifiedIMObject.cs" />

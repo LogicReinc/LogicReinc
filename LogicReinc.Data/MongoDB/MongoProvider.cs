@@ -16,7 +16,7 @@ namespace LogicReinc.Data.MongoDB
         private Mongo mongo = null;
         public MongoSettings Settings { get; set; }
         public string DatabaseName => Settings.Database;
-
+        public bool GenerateID => false;
 
         public MongoProvider(MongoSettings settings)
         {

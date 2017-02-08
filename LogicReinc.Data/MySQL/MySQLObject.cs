@@ -1,6 +1,7 @@
-﻿using LogicReinc.Data.MSSQL.Utility;
+﻿using LogicReinc.Data.MySQL.Utility;
 using LogicReinc.Data.SQL;
 using LogicReinc.Data.SQL.Attributes;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -9,17 +10,17 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogicReinc.Data.MSSQL
+namespace LogicReinc.Data.MySQL
 {
-    public class MSSQLObject<T> where T : new()
+    public class MySQLObject<T> where T : new()
     {
-        private static MSSQL sql = null;
-        public static MSSQL SQL
+        private static MySQL sql = null;
+        public static MySQL SQL
         {
             get
             {
                 if (sql == null)
-                    throw new Exception($"SQL Object {typeof(T).Name} has not yet have a MSSQL object assigned to SqlObject<T>.SQL");
+                    throw new Exception($"SQL Object {typeof(T).Name} has not yet have a MySQL object assigned to SqlObject<T>.SQL");
                 return sql;
             }
             set
@@ -30,7 +31,7 @@ namespace LogicReinc.Data.MSSQL
    
         //MetaData
         public static DBObjectDescriptorAttribute Descriptor { get; } = DBObjectDescriptorAttribute.GetAttribute(typeof(T));
-        public static List<ColumnProperty> Columns { get; } = ColumnProperty.GetCollumns<T>(MSSQLHelper.Instance, true).Values.ToList();
+        public static List<ColumnProperty> Columns { get; } = ColumnProperty.GetCollumns<T>(MySQLHelper.Instance, true).Values.ToList();
 
 
         protected static string Join => string.Join(" ", Descriptor.Joins.Select(x => x.Join));
@@ -47,7 +48,7 @@ namespace LogicReinc.Data.MSSQL
                 if (!prop.Column.IsAutoNumbering)
                     fields.Add(prop.Name, prop.Info.GetValue(this));
 
-            SqlCommand com = MSSQLBuilder.Static.InsertBuilder(Descriptor.Table, fields);
+            MySqlCommand com = MySQLBuilder.Static.InsertBuilder(Descriptor.Table, fields);
             
             return (SQL.ExecuteQuery(com) > 0);
         }
@@ -55,7 +56,7 @@ namespace LogicReinc.Data.MSSQL
         {
             string where = "";
 
-            SqlCommand com = new SqlCommand();
+            MySqlCommand com = new MySqlCommand();
             KeyValuePair<string, object>? pk = null;
 
             Dictionary<string, object> objs = new Dictionary<string, object>();
@@ -70,7 +71,7 @@ namespace LogicReinc.Data.MSSQL
                     objs.Add(prop.Name, prop.Info.GetValue(this));
 
 
-            com = MSSQLBuilder.Static.UpdateBuilder(Descriptor.Table, where, objs);
+            com = MySQLBuilder.Static.UpdateBuilder(Descriptor.Table, where, objs);
 
             if (!pk.HasValue)
                 throw new Exception("No Primary Key");
@@ -91,7 +92,7 @@ namespace LogicReinc.Data.MSSQL
                 throw new Exception("Primary key cannot be null");
 
             return SQL.ExecuteQuery(
-                MSSQLBuilder.Static.DeleteBuilder(Descriptor.Table, primaryKey.Name, primaryKey.Info.GetValue(this))) > 0;
+                MySQLBuilder.Static.DeleteBuilder(Descriptor.Table, primaryKey.Name, primaryKey.Info.GetValue(this))) > 0;
         }
 
 
@@ -99,7 +100,7 @@ namespace LogicReinc.Data.MSSQL
         public static T GetObject(object primaryKey)
         {
             return SQL.RetrieveObjects<T>(
-                MSSQLBuilder.Static.SelectBuilder(Descriptor.Table, Join, ColumnNames,
+                MySQLBuilder.Static.SelectBuilder(Descriptor.Table, Join, ColumnNames,
                 $"[{PrimaryKey.Name}] = @pk", new Dictionary<string, object>()
                 {
                     { "pk", primaryKey }
@@ -110,12 +111,12 @@ namespace LogicReinc.Data.MSSQL
         public static List<T> GetObjects()
         {
             return SQL.RetrieveObjects<T>(
-                MSSQLBuilder.Static.SelectBuilder(Descriptor.Table, Join, ColumnNames));
+                MySQLBuilder.Static.SelectBuilder(Descriptor.Table, Join, ColumnNames));
         }
         protected static List<T> GetObjects(string where, Dictionary<string, object> values = null)
         {
             return SQL.RetrieveObjects<T>(
-                MSSQLBuilder.Static.SelectBuilder(Descriptor.Table, Join, ColumnNames, where, values));
+                MySQLBuilder.Static.SelectBuilder(Descriptor.Table, Join, ColumnNames, where, values));
         }
 
         //
@@ -126,19 +127,19 @@ namespace LogicReinc.Data.MSSQL
             if (pk == null)
                 throw new Exception("DeleteObject requires you to define a primary key");
 
-            return SQL.ExecuteQuery(MSSQLBuilder.Static.DeleteBuilder(Descriptor.Table, pk.Name, primaryKey)) > 0;
+            return SQL.ExecuteQuery(MySQLBuilder.Static.DeleteBuilder(Descriptor.Table, pk.Name, primaryKey)) > 0;
         }
 
         public static string BuildTable()
         {
-            return MSSQLBuilder.Static.TableBuilder(Descriptor.Table, Columns);
+            return MySQLBuilder.Static.TableBuilder(Descriptor.Table, Columns);
         }
         public static string InitTable()
         {
             try
             {
                 return SQL.ExecuteQuery(
-                    MSSQLBuilder.Static.TableBuilder(Descriptor.Table, Columns)).ToString();
+                    MySQLBuilder.Static.TableBuilder(Descriptor.Table, Columns)).ToString();
             }
             catch (Exception Exception) { return Exception.Message; }
         }

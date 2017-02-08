@@ -14,6 +14,8 @@ namespace LogicReinc.Data.FileIO
     {
         public string DirectoryPath { get; private set; }
 
+        public bool GenerateID => true;
+
         public string DatabaseName
         {
             get

@@ -23,7 +23,7 @@ namespace LogicReinc.Collection
                 {
                     Dictionary<object, List<T>> pIndex = indexes[property];
 
-                    if (pIndex.ContainsKey(value))
+                    if (value != null && pIndex.ContainsKey(value))
                         pIndex[value].Remove(obj);
                 }
             }

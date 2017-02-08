@@ -11,6 +11,7 @@ namespace LogicReinc.Data.SQL.Attributes
     {
         public bool IsPrimaryKey { get; private set; }
         public bool IsAutoNumbering { get; private set; }
+        public bool IsAutoGuid { get; private set; }
         public string Name { get; private set; }
         public Type Type { get; private set; }
 
@@ -20,10 +21,11 @@ namespace LogicReinc.Data.SQL.Attributes
             Type = type;
         }
 
-        public ColumnAttribute(string name, bool isPK = false, bool isAutoNumbering = false, Type type = null)
+        public ColumnAttribute(string name, bool isPK = false, bool isAutoNumbering = false, bool isAutoGuid = false, Type type = null)
         {
             IsPrimaryKey = isPK;
             IsAutoNumbering = isAutoNumbering;
+            IsAutoGuid = isAutoGuid;
             Name = name;
             Type = type;
         }

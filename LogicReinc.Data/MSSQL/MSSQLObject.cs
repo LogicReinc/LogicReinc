@@ -43,9 +43,15 @@ namespace LogicReinc.Data.MSSQL
         {
             Dictionary<string, object> fields = new Dictionary<string, object>();
 
+            
             foreach (ColumnProperty prop in Columns)
-                if (!prop.Column.IsAutoNumbering)
-                    fields.Add(prop.Name, prop.Info.GetValue(this));
+            {
+                object val = prop.GetValue(this);
+                if (prop.HasAttribute && prop.Column.IsAutoGuid && val == null)
+                    prop.SetValue(this, Guid.NewGuid().ToString("N"));
+                if (!prop.HasAttribute || !prop.Column.IsAutoNumbering)
+                    fields.Add(prop.Name, val);
+            }
 
             SqlCommand com = MSSQLBuilder.Static.InsertBuilder(Descriptor.Table, fields);
             

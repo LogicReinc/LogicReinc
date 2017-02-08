@@ -220,5 +220,46 @@ namespace LogicReinc.Data.MySQL
 
             return items;
         }
+
+
+        public bool SyncObjectToTable(string collection, Type type)
+        {
+            List<ColumnProperty> columns = ColumnProperty.GetCollumns(MySQLHelper.Instance, type, true).Values.ToList();
+            if (!MySQLTable.GetTables(this).Contains(collection))
+            {
+                MySQLTable.CreateTable(this, collection, columns);
+                return true;
+            }
+            else
+            {
+                MySQLTable table = MySQLTable.GetTable(this, collection);
+                List<ColumnProperty> todo = table.Columns.ToList();
+                foreach (ColumnProperty col in columns)
+                {
+                    ColumnProperty existing = table.Columns.FirstOrDefault(X => X.Name == col.Name);
+                    if (existing == null)
+                    {
+                        Console.WriteLine($"SQL missing Column {col.Name}... Adding");
+                        if (!MySQLTable.AddColumn(this, collection, col.Name, col.SqlType))
+                            throw new Exception($"Failed to add collumn {col.Name}");
+                    }
+                    else if (!existing.SqlType.StartsWith(col.SqlType))
+                    {
+                        Console.WriteLine($"SQL incorrect Column Type for {col.Name}... Converting");
+                        if (!MySQLTable.ConvertColumn(this, collection, col.Name, col.SqlType))
+                            throw new Exception($"Failed to convert collumn {col.Name}");
+                    }
+                    if (existing != null)
+                        todo.Remove(existing);
+                }
+                foreach (ColumnProperty prop in todo)
+                {
+                    Console.WriteLine($"Excess collumn {prop.Name}... Removing");
+                    if (!MySQLTable.RemoveColumn(this, collection, prop.Name))
+                        throw new Exception($"Failed to remove collumn {prop.Name}");
+                }
+            }
+            return true;
+        }
     }
 }

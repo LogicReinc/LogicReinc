@@ -1,4 +1,5 @@
-﻿using LogicReinc.Data.SQL.Utility;
+﻿using LogicReinc.Data.SQL.Attributes;
+using LogicReinc.Data.SQL.Utility;
 using LogicReinc.Parsing;
 using System;
 using System.Collections.Generic;
@@ -17,8 +18,16 @@ namespace LogicReinc.Data.MSSQL.Utility
             return SQLHelper.IsSupportedType(type);
         }
 
-        public string GetSqlType(Type t)
+        public string GetSqlType(Type t, ColumnAttribute attribute)
         {
+            if(attribute != null)
+            {
+                if (attribute.IsAutoGuid)
+                    return "char(32)";
+                if (attribute.Type != null)
+                    t = attribute.Type;
+            }
+
             if (t == typeof(bool))
                 return "bit";
             if (t == typeof(string))

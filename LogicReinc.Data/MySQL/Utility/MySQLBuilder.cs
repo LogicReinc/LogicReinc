@@ -26,10 +26,11 @@ namespace LogicReinc.Data.MySQL.Utility
         {
             StringBuilder builder = new StringBuilder();
 
+
             builder.AppendLine($"CREATE TABLE `{tableName}` (");
             builder.AppendLine(string.Join($", {Environment.NewLine}", fields.Select(cp =>
-                $"\t `{cp.Name}` {cp.SqlType}" +
-                ((cp.HasAttribute && cp.Column.IsAutoNumbering) ? " Identity(1,1) " : "") +
+                $"\t `{cp.Name}` {((cp.HasAttribute && cp.Column.IsAutoGuid) ? "char(32)" : cp.SqlType)}" +
+                ((cp.HasAttribute && cp.Column.IsAutoNumbering) ? " AUTO_INCREMENT " : "") +
                 ((cp.IsPrimaryKey) ? " PRIMARY KEY " : "")
                 ).ToArray()));
             builder.AppendLine(")");

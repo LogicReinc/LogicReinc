@@ -1,4 +1,5 @@
-﻿using LogicReinc.Data.SQL.Utility;
+﻿using LogicReinc.Data.SQL.Attributes;
+using LogicReinc.Data.SQL.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +23,16 @@ namespace LogicReinc.Data.MySQL.Utility
             return $"Server={address};Database={database};Uid={user};Pwd={password};";
         }
 
-        public string GetSqlType(Type t)
+        public string GetSqlType(Type t, ColumnAttribute attribute)
         {
+            if (attribute != null)
+            {
+                if (attribute.Type != null)
+                    t = attribute.Type;
+                if (attribute.IsAutoGuid)
+                    return "char(32)";
+            }
+
             if (t == typeof(bool))
                 return "bit";
             if (t == typeof(string))

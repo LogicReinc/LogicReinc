@@ -1,31 +1,49 @@
-﻿using LogicReinc.Parsing;
+﻿using LogicReinc.Data.SQL.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogicReinc.Data.MSSQL.Utility
+namespace LogicReinc.Data.MySQL.Utility
 {
-    public static class SqlHelper
+    public class MySQLHelper : ISQLHelper
     {
-        public static string GetSqlType(Type t)
+        public static MySQLHelper Instance { get; } = new MySQLHelper();
+
+
+        public bool IsSupportedType(Type t)
+        {
+            return SQLHelper.IsSupportedType(t);
+        }
+
+        public static string CreateConnectionString(string address, string user, string password, string database)
+        {
+            return $"Server={address};Database={database};Uid={user};Pwd={password};";
+        }
+
+        public string GetSqlType(Type t)
         {
             if (t == typeof(bool))
                 return "bit";
             if (t == typeof(string))
-                return "varchar(max)";
+                return "varchar(2000)";
             if (t == typeof(char))
                 return "char(1)";
-            if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long))
-                return "integer";
-            if (t == typeof(double))
-                return "decimal";
+            if (t == typeof(byte) || t == typeof(int))//t == typeof(short) || t == typeof(int) || t == typeof(long))
+                return "int";
+            if (t == typeof(short))
+                return "smallint";
+            if (t == typeof(long))
+                return "bigint";
+            if (t == typeof(double) || t == typeof(decimal))
+                return "decimal(20,10)";
             if (t == typeof(DateTime))
                 return "datetime";
             throw new Exception($"Type {t.Name} has not been implemented for sql");
         }
-        public static string ToSQLValue(object input, Type type = null)
+
+        public string ToSqlValue(object input, Type type = null)
         {
             if (input == null)
                 return "NULL";

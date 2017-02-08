@@ -1,5 +1,7 @@
 ﻿using LogicReinc.Data.MSSQL.Utility;
 using LogicReinc.Data.SQL.Attributes;
+using LogicReinc.Data.SQL.Utility;
+using LogicReinc.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,18 +15,33 @@ namespace LogicReinc.Data.SQL
     {
         private static Dictionary<Type, Dictionary<string, ColumnProperty>> Cache { get; set; } = new Dictionary<Type, Dictionary<string, ColumnProperty>>();
 
+
+        private ISQLHelper Helper { get; set; }
+        public bool IsPrimaryKey { get; private set; }
         public bool HasAttribute { get; private set; }
         public PropertyInfo Info { get; private set; }
         public string Name { get; set; }
         public Type Type { get; set; }
 
-        public string SqlType => SqlHelper.GetSqlType(Info.PropertyType);
+        private string sqlType = "";
+        public string SqlType
+        {
+            get
+            {
+                if (Info == null)
+                    return sqlType;
+                if (string.IsNullOrEmpty(sqlType))
+                    sqlType = Helper.GetSqlType(Info.PropertyType);
+                return sqlType;
+            }
+        }
 
         public ColumnAttribute Column { get; private set; }
 
-        private ColumnProperty(PropertyInfo info)
+        private ColumnProperty(ISQLHelper helper, PropertyInfo info, string type, bool primaryKey = false)
         {
             Info = info;
+            Helper = helper;
             ColumnAttribute attr = ColumnAttribute.GetAttribute(info);
             if (attr != null)
             {
@@ -37,30 +54,51 @@ namespace LogicReinc.Data.SQL
                 Name = info.Name;
             if (Type == null)
                 Type = info.PropertyType;
+            IsPrimaryKey = primaryKey || (HasAttribute && Column.IsPrimaryKey);
+        }
 
+        public ColumnProperty(ISQLHelper helper, string name, string type)
+        {
+            Helper = helper;
+            Name = name;
+            sqlType = type;
+        }
+
+        public void OverrideSqlType(string type)
+        {
+            sqlType = type;
         }
 
         public void SetValue(object instance, object val)
         {
-            Info.SetValue(instance, val, null);
+            Property.Set(instance, Info.Name, val);
+            //Info.SetValue(instance, val, null);
         }
 
-        public static Dictionary<string, ColumnProperty> GetCollumns<T>(bool allProps = false)
+        public object GetValue(object instance)
         {
-            return GetCollumns(typeof(T));
+            return Property.Get(instance, Info.Name);
         }
-        public static Dictionary<string, ColumnProperty> GetCollumns(Type type, bool allProps = false)
+
+        public static Dictionary<string, ColumnProperty> GetCollumns<T>(ISQLHelper helper, bool allProps = false, params string[] primaryKeys)
+        {
+            return GetCollumns(helper, typeof(T), allProps, primaryKeys);
+        }
+        public static Dictionary<string, ColumnProperty> GetCollumns(ISQLHelper helper, Type type, bool allProps = false, params string[] primaryKeys)
         {
             if (!Cache.ContainsKey(type))
             {
                 Dictionary<string, ColumnProperty> columns = new Dictionary<string, ColumnProperty>();
                 foreach (PropertyInfo info in type.GetProperties())
                 {
-                    ColumnProperty column = new ColumnProperty(info);
-                    if (column.HasAttribute)
-                        columns.Add(column.Name, column);
-                    else if (allProps)
-                        columns.Add(info.Name, new ColumnProperty(info));
+                    if (SQLHelper.IsSupportedType(info.PropertyType))
+                    {
+                        ColumnProperty column = new ColumnProperty(helper, info, helper.GetSqlType(info.PropertyType));
+                        if (column.HasAttribute)
+                            columns.Add(column.Name, column);
+                        else if (allProps)
+                            columns.Add(info.Name, new ColumnProperty(helper, info, helper.GetSqlType(info.PropertyType), primaryKeys.Contains(info.Name)));
+                    }
                 }
                 Cache.Add(type, columns);
             }

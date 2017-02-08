@@ -1,28 +1,26 @@
-﻿using LogicReinc.Data.MSSQL.Utility;
+﻿using LogicReinc.Data.MySQL.Utility;
 using LogicReinc.Data.SQL;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LogicReinc.Data.MSSQL
+namespace LogicReinc.Data.MySQL
 {
-    public class MSSQL
+    public class MySQL
     {
         private string conString;
-
         public string ConnectionString
         {
             get
             {
                 if (!string.IsNullOrEmpty(conString))
                     return conString;
-                throw new Exception("ConnectionString not set for Core yet");
+                throw new Exception("ConnectionString not set for instance yet");
             }
             set
             {
@@ -30,30 +28,42 @@ namespace LogicReinc.Data.MSSQL
             }
         }
 
-        public MSSQL() { }
-        public MSSQL(string conString)
+        public string Database { get; private set; }
+
+        public MySQL() { }
+        public MySQL(string conString)
         {
             ConnectionString = conString;
+            string lowered = conString.ToLower();
+            if(lowered.Contains("database"))
+            {
+                int start = lowered.IndexOf("database=");
+                if(start >= 0)
+                {
+                    start += 9;
+                    int end = lowered.IndexOf(";", start);
+                    int length = end - start;
+                    
+                    Database = conString.Substring(start, length);
+                }
+            }
         }
 
-        private SqlConnection connection;
-        public SqlConnection CreateConnection()
+
+        private MySqlConnection connection;
+        public MySqlConnection CreateConnection()
         {
-            return new SqlConnection(ConnectionString);
+            return new MySqlConnection(ConnectionString);
         }
-        
-        public SqlVersionInfo GetVersionInfo()
-        {
-            return RetrieveObjects<SqlVersionInfo>("Select	SERVERPROPERTY('productversion') As [Version], SERVERPROPERTY('productlevel') As[Level], SERVERPROPERTY('edition') As[Edition]")?.FirstOrDefault();
-        }
-        
+
         public int ExecuteQuery(string query)
         {
-            return ExecuteQuery(new SqlCommand(query));
+            return ExecuteQuery(new MySqlCommand(query));
         }
-        public int ExecuteQuery(SqlCommand query)
+
+        public int ExecuteQuery(MySqlCommand query)
         {
-            using (SqlConnection con = CreateConnection())
+            using (MySqlConnection con = CreateConnection())
             {
                 con.Open();
                 query.Connection = con;
@@ -61,17 +71,17 @@ namespace LogicReinc.Data.MSSQL
             }
         }
 
-        public bool ExecuteQueriesSafely(List<string> queries) => ExecuteQueriesSafely(queries.Where(x => !string.IsNullOrEmpty(x)).Select(x => new SqlCommand(x)).ToList());
-        public bool ExecuteQueriesSafely(List<SqlCommand> queries)
+        public bool ExecuteQueriesSafely(List<string> queries) => ExecuteQueriesSafely(queries.Where(x => !string.IsNullOrEmpty(x)).Select(x => new MySqlCommand(x)).ToList());
+        public bool ExecuteQueriesSafely(List<MySqlCommand> queries)
         {
-            using (SqlConnection con = CreateConnection())
+            using (MySqlConnection con = CreateConnection())
             {
                 con.Open();
-                SqlTransaction transaction = con.BeginTransaction();
-                
+                MySqlTransaction transaction = con.BeginTransaction();
+
                 try
                 {
-                    foreach (SqlCommand query in queries)
+                    foreach (MySqlCommand query in queries)
                     {
                         query.Connection = con;
                         query.Transaction = transaction;
@@ -88,15 +98,15 @@ namespace LogicReinc.Data.MSSQL
                 return true;
             }
         }
-        
+
         public DataTable RetrieveDataTable(string query)
         {
-            return RetrieveDataTable(new SqlCommand(query));
+            return RetrieveDataTable(new MySqlCommand(query));
         }
-        public DataTable RetrieveDataTable(SqlCommand command)
+        public DataTable RetrieveDataTable(MySqlCommand command)
         {
             DataSet set;
-            using (SqlConnection con = CreateConnection())
+            using (MySqlConnection con = CreateConnection())
             {
                 command.Connection = con;
 
@@ -105,7 +115,7 @@ namespace LogicReinc.Data.MSSQL
 
                 command.Connection.Open();
 
-                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                MySqlDataAdapter adapter = new MySqlDataAdapter(command);
                 adapter.Fill(set);
 
                 command.Connection.Close();
@@ -115,19 +125,19 @@ namespace LogicReinc.Data.MSSQL
 
         public List<OrderedDictionary> RetrieveData(string query)
         {
-            return RetrieveData(new SqlCommand(query));
+            return RetrieveData(new MySqlCommand(query));
         }
-        public List<OrderedDictionary> RetrieveData(SqlCommand command)
+        public List<OrderedDictionary> RetrieveData(MySqlCommand command)
         {
-            using (SqlConnection con = CreateConnection())
+            using (MySqlConnection con = CreateConnection())
             {
                 command.Connection = con;
                 command.Connection.Open();
 
                 OrderedDictionary o = new OrderedDictionary();
-                
+
                 List<OrderedDictionary> data = new List<OrderedDictionary>();
-                using (SqlDataReader reader = command.ExecuteReader())
+                using (MySqlDataReader reader = command.ExecuteReader())
                     while (reader.Read())
                     {
                         OrderedDictionary rowData = new OrderedDictionary();
@@ -145,15 +155,15 @@ namespace LogicReinc.Data.MSSQL
 
         public List<T> RetrieveObjects<T>(string query)
         {
-            return RetrieveObjects<T>(new SqlCommand(query));
+            return RetrieveObjects<T>(new MySqlCommand(query));
         }
-        public List<T> RetrieveObjects<T>(SqlCommand command)
+        public List<T> RetrieveObjects<T>(MySqlCommand command)
         {
             List<T> items = new List<T>();
 
             DataTable table = RetrieveDataTable(command);
 
-            Dictionary<string, ColumnProperty> typeProps = ColumnProperty.GetCollumns<T>(MSSQLHelper.Instance);
+            Dictionary<string, ColumnProperty> typeProps = ColumnProperty.GetCollumns<T>(MySQLHelper.Instance);
 
             DataColumnCollection columns = table.Columns;
 
@@ -165,7 +175,7 @@ namespace LogicReinc.Data.MSSQL
                     foreach (DataColumn col in columns)
                     {
                         if (typeProps.ContainsKey(col.ColumnName))
-                            typeProps[col.ColumnName].SetValue(item, table.Rows[r][col]);
+                            typeProps[col.ColumnName].SetValue(item, Convert.ChangeType(table.Rows[r][col], typeProps[col.ColumnName].Type));
                     }
                     items.Add(item);
                 }
@@ -178,13 +188,13 @@ namespace LogicReinc.Data.MSSQL
             return items;
         }
 
-        public List<object> RetrieveObjects(Type t, SqlCommand command)
+        public List<object> RetrieveObjects(Type t, MySqlCommand command)
         {
             List<object> items = new List<object>();
 
             DataTable table = RetrieveDataTable(command);
 
-            Dictionary<string, ColumnProperty> typeProps = ColumnProperty.GetCollumns(MSSQLHelper.Instance, t);
+            Dictionary<string, ColumnProperty> typeProps = ColumnProperty.GetCollumns(MySQLHelper.Instance, t);
 
             DataColumnCollection columns = table.Columns;
 
@@ -210,6 +220,5 @@ namespace LogicReinc.Data.MSSQL
 
             return items;
         }
-
     }
 }

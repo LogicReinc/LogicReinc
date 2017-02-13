@@ -48,7 +48,10 @@ namespace LogicReinc.Data.MySQL
             {
                 object val = prop.GetValue(this);
                 if (prop.HasAttribute && prop.Column.IsAutoGuid && val == null)
-                    prop.SetValue(this, Guid.NewGuid().ToString("N"));
+                {
+                    val = Guid.NewGuid().ToString("N");
+                    prop.SetValue(this, val);
+                }
                 if (!prop.HasAttribute || !prop.Column.IsAutoNumbering)
                     fields.Add(prop.Name, val);
             }
@@ -74,9 +77,9 @@ namespace LogicReinc.Data.MySQL
             Dictionary<string, object> objs = new Dictionary<string, object>();
 
             foreach (ColumnProperty prop in Columns)
-                if (prop.Column.IsPrimaryKey)
+                if (prop.Column?.IsPrimaryKey ?? false)
                 {
-                    where = "[" + prop.Name + "] = @" + prop.Name;
+                    where = "`" + prop.Name + "` = @" + prop.Name;
                     pk = new KeyValuePair<string, object>(prop.Name, prop.Info.GetValue(this));
                 }
                 else                 

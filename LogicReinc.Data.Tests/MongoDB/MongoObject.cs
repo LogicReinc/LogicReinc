@@ -25,6 +25,14 @@ namespace LogicReinc.Data.Tests.MongoDB
             TestObject.ClearDatabase();
         }
 
+        const int itterations = 10000;
+        [TestMethod]
+        public void InsertSpeed()
+        {
+            for (int i = 0; i < itterations; i++)
+                Insert();
+        }
+
         [TestMethod]
         public void Insert()
         {

@@ -157,6 +157,8 @@ namespace LogicReinc.Data.Unified
 
         public static T GetObject(string id)
         {
+            if (id == null)
+                return null;
             if (UnifiedSystem.UseOmniBase)
             {
                 lock (UnifiedSystem.OmniBase)

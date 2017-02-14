@@ -1,6 +1,7 @@
 ﻿using LogicReinc.Collection;
 using LogicReinc.Collections;
 using LogicReinc.Data.Unified.Attributes;
+using LogicReinc.Expressions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
@@ -110,11 +111,23 @@ namespace LogicReinc.Data.Unified
         public virtual bool Update(T obj, bool update, params string[] properties)
         {
             Type t = GetType();
-            foreach (string s in properties)
+            if (properties != null && properties.Length > 0)
             {
-                PropertyInfo type = t.GetProperty(s);
-                if (type.SetMethod != null)
-                    type.SetValue(this, type.GetValue(obj));
+                foreach (string s in properties)
+                {
+                    PropertyInfo type = t.GetProperty(s);
+                    if (type.SetMethod != null)
+                        Property.Set(this, type.Name, Property.Get(obj, type.Name));
+                }
+            }
+            else
+            {
+                foreach (PropertyInfo prop in t.GetProperties())
+                {
+                    if (prop.SetMethod != null)
+                        Property.Set(this, prop.Name, Property.Get(obj, prop.Name));
+                        //prop.SetValue(this, prop.GetValue(obj));
+                }
             }
             if (update)
                 return Update();

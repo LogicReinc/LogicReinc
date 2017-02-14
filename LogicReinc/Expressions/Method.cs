@@ -35,5 +35,16 @@ namespace LogicReinc.Expressions
 
             return lambda;
         }
+
+        public static object CallGeneric(MethodInfo method, object instance, Type[] types, params object[] parameters)
+        {
+            MethodInfo m = method.MakeGenericMethod(types);
+            return m.Invoke(instance, parameters);
+        }
+
+        public static T CallGeneric<T>(MethodInfo method, object instance, Type[] types, params object[] parameters)
+        {
+            return (T)CallGeneric(method, instance, types, parameters);
+        }
     }
 }

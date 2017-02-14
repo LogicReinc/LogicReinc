@@ -1,8 +1,11 @@
 ﻿using LogicReinc.Data.Unified;
 using LogicReinc.Data.Unified.Attributes;
+using LogicReinc.Expressions;
+using MongoDB.Bson.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +36,13 @@ namespace LogicReinc.Data.MongoDB
                 string col = UnifiedCollectionAttribute.GetCollection<T>();
                 if (string.IsNullOrEmpty(col))
                     throw new Exception($"Missing UnifiedCollectionAttribute on type {typeof(T).Name}");
+
+                UnifiedIMDerivesAttribute derived = UnifiedIMDerivesAttribute.GetAttribute<T>();
+                if(derived != null)
+                {
+                    foreach (Type type in derived.Derived)
+                        Method.CallGeneric(typeof(BsonClassMap).GetMethod("RegisterClassMap", new Type[] { }), null, new Type[] { type });
+                }
 
                 Collections.Add(typeof(T), mongo.GetCollection<T>(col));
             }

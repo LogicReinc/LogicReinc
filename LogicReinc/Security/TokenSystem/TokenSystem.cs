@@ -45,7 +45,11 @@ namespace LogicReinc.Security.TokenSystem
 
 
         //Publics
-
+        public Token GetToken(string token)
+        {
+            TokenLookup lookup = lookupTable[token];
+            return lookup.ToToken();
+        }
 
         //Verification
         public bool VerifyToken(string tokenUnique, string token)

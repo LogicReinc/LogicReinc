@@ -58,6 +58,9 @@
     <Compile Include="Collection\TSMultiList.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Exceptions\APIException.cs" />
+    <Compile Include="Expressions\Helpers\ExpressionBuilder.cs" />
+    <Compile Include="Expressions\Helpers\ExpressionObject.cs" />
+    <Compile Include="Expressions\Helpers\ExpressionHelper.cs" />
     <Compile Include="Expressions\Method.cs" />
     <Compile Include="Expressions\Property.cs" />
     <Compile Include="Extensions\ByteArrayExtensions.cs" />

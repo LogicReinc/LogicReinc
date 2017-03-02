@@ -65,8 +65,14 @@ namespace LogicReinc.Data.MySQL
 
             if(!MySQLTable.GetTables(SQL).Contains(collection))
             {
-                if (!MySQLTable.CreateTable(SQL, collection, GetColumns<C>()))
+                try
+                {
+                    MySQLTable.CreateTable(SQL, collection, GetColumns<C>());
+                }
+                catch (Exception ex)
+                {
                     throw new Exception($"Failed to create table {collection}");
+                }
             }
             else
             {

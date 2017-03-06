@@ -73,7 +73,7 @@ namespace LogicReinc.Expressions
         {
             MethodInfo method = type.GetMethodCached(name);
 
-            if (method.ReturnType != null)
+            if (method.ReturnType != typeof(void))
                 return BuildMethodFunction(method, true)(instance, parameters);
             else
             {

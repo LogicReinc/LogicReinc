@@ -56,6 +56,7 @@
     <Compile Include="Expressions\Property.cs" />
     <Compile Include="Extensions\Streams.cs" />
     <Compile Include="IO\PatternizedStreamTests.cs" />
+    <Compile Include="Parsing\BinaryParserTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,7 +67,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Collection\" />
-    <Folder Include="Parsing\" />
     <Folder Include="SyntaxSugar\" />
   </ItemGroup>
   <Choose>

@@ -79,6 +79,7 @@
     <Compile Include="Languages\Javascript\Builder\JSBObject.cs" />
     <Compile Include="Languages\Javascript\Builder\JSBOperation.cs" />
     <Compile Include="Languages\Javascript\Builder\JSBuilder.cs" />
+    <Compile Include="Parsing\BinaryParser.cs" />
     <Compile Include="Parsing\StringParser.cs" />
     <Compile Include="Parsing\XmlParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

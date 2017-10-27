@@ -34,8 +34,8 @@ namespace LogicReinc.Tests.Experimenting
                 }
                 count++;
             }
-            Console.WriteLine(count);
-            Console.WriteLine(h50);
+            System.Console.WriteLine(count);
+            System.Console.WriteLine(h50);
         }
     }
 }

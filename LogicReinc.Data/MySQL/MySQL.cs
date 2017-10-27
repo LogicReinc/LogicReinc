@@ -239,13 +239,13 @@ namespace LogicReinc.Data.MySQL
                     ColumnProperty existing = table.Columns.FirstOrDefault(X => X.Name == col.Name);
                     if (existing == null)
                     {
-                        Console.WriteLine($"SQL missing Column {col.Name}... Adding");
+                        System.Console.WriteLine($"SQL missing Column {col.Name}... Adding");
                         if (!MySQLTable.AddColumn(this, collection, col.Name, col.SqlType))
                             throw new Exception($"Failed to add collumn {col.Name}");
                     }
                     else if (!existing.SqlType.StartsWith(col.SqlType))
                     {
-                        Console.WriteLine($"SQL incorrect Column Type for {col.Name}... Converting");
+                        System.Console.WriteLine($"SQL incorrect Column Type for {col.Name}... Converting");
                         if (!MySQLTable.ConvertColumn(this, collection, col.Name, col.SqlType))
                             throw new Exception($"Failed to convert collumn {col.Name}");
                     }
@@ -254,7 +254,7 @@ namespace LogicReinc.Data.MySQL
                 }
                 foreach (ColumnProperty prop in todo)
                 {
-                    Console.WriteLine($"Excess collumn {prop.Name}... Removing");
+                    System.Console.WriteLine($"Excess collumn {prop.Name}... Removing");
                     if (!MySQLTable.RemoveColumn(this, collection, prop.Name))
                         throw new Exception($"Failed to remove collumn {prop.Name}");
                 }

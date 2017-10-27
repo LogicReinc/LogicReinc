@@ -58,6 +58,7 @@
     <Compile Include="Collection\TSMultiList.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Console\ConsoleHandler.cs" />
+    <Compile Include="Console\ExtendedConsole.cs" />
     <Compile Include="Exceptions\APIException.cs" />
     <Compile Include="Expressions\Helpers\ExpressionBuilder.cs" />
     <Compile Include="Expressions\Helpers\ExpressionObject.cs" />

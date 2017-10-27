@@ -48,7 +48,7 @@ namespace LogicReinc.Extensions
 
         public static bool IsList(this Type type)
         {
-            return type.IsSubclassOf(typeof(IList));
+            return typeof(IList).IsAssignableFrom(type);
         }
     }
 }

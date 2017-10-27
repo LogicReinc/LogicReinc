@@ -46,6 +46,8 @@ namespace LogicReinc.Console
                 foreach (string para in arr)
                     foreach (ParameterInfo p in info.GetParameters())
                         paras.Add(parser.Parse(p.ParameterType, para.Trim('\'', '"')));
+
+                info.Invoke(null, paras.ToArray());
                 return true;
             }
             return false;

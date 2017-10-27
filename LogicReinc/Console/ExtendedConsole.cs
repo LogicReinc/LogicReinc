@@ -10,6 +10,21 @@ namespace LogicReinc.Console
     public class ExtendedConsole<T> : ConsoleHandler<T>
     {
         
+        public static void WriteLine(string str, ConsoleColor color)
+        {
+            ConsoleColor current = System.Console.ForegroundColor;
+            System.Console.ForegroundColor = color;
+            System.Console.WriteLine(str);
+            System.Console.ForegroundColor = current;
+        }
+        public static void Write(string str, ConsoleColor color)
+        {
+            ConsoleColor current = System.Console.ForegroundColor;
+            System.Console.ForegroundColor = color;
+            System.Console.Write(str);
+            System.Console.ForegroundColor = current;
+        }
+
         public static void Show()
         {
             User32.ShowWindow(User32.GetConsoleWindow(), User32.SW_SHOW);

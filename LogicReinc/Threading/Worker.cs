@@ -23,7 +23,7 @@ namespace LogicReinc.Threading
                         catch (Exception ex)
                         {
                             //Iknow.
-                            Console.WriteLine("Error on Worker: " + ex.Message);
+                            System.Console.WriteLine("Error on Worker: " + ex.Message);
                         }
                     }
                     else

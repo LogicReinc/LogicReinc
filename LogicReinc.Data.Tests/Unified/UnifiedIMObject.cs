@@ -54,7 +54,7 @@ namespace LogicReinc.Data.Tests.Unified
         [TestMethod]
         public void Initialization()
         {
-            Console.WriteLine("Initialized");
+            System.Console.WriteLine("Initialized");
         }
 
         [TestMethod]
@@ -126,9 +126,9 @@ namespace LogicReinc.Data.Tests.Unified
                 }
             }
 
-            Console.WriteLine("Initial References");
-            Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
-            Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("Initial References");
+            System.Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
 
 
             for (int i = 0; i < 10; i++)
@@ -161,9 +161,9 @@ namespace LogicReinc.Data.Tests.Unified
                 }
             }
 
-            Console.WriteLine("After exchanging the ids (On targets)");
-            Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
-            Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("After exchanging the ids (On targets)");
+            System.Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
 
             parent1.IntegerProperty = 2;
             parent1.Update();
@@ -174,9 +174,9 @@ namespace LogicReinc.Data.Tests.Unified
                     Assert.IsTrue(parent1.Referenced.Contains(items[i]));
             }
 
-            Console.WriteLine("After changing the id of parent 1 to parent 2");
-            Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
-            Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("After changing the id of parent 1 to parent 2");
+            System.Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
 
             foreach (UIMTestObject2 child in items)
             {
@@ -187,9 +187,9 @@ namespace LogicReinc.Data.Tests.Unified
             Assert.AreEqual(0, parent1.Referenced.Count);
             Assert.AreEqual(0, parent2.Referenced.Count);
 
-            Console.WriteLine("After deletion of all targets");
-            Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
-            Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("After deletion of all targets");
+            System.Console.WriteLine("Parent1: " + string.Join(" ", parent1.Referenced.Select(x => x.InitialIndex).ToArray()));
+            System.Console.WriteLine("Parent2: " + string.Join(" ", parent2.Referenced.Select(x => x.InitialIndex).ToArray()));
         }
 
 
@@ -208,7 +208,7 @@ namespace LogicReinc.Data.Tests.Unified
                 }.Insert();
 
             watch.Stop();
-            Console.WriteLine($"{(double)watch.ElapsedTicks / TimeSpan.TicksPerMillisecond} - {watch.ElapsedMilliseconds}");
+            System.Console.WriteLine($"{(double)watch.ElapsedTicks / TimeSpan.TicksPerMillisecond} - {watch.ElapsedMilliseconds}");
         }
 
         [TestMethod]
@@ -297,7 +297,7 @@ namespace LogicReinc.Data.Tests.Unified
             watch.Start();
             UIMTestObject2.ClearDatabase();
             watch.Stop();
-            Console.WriteLine($"{watch.ElapsedMilliseconds}");
+            System.Console.WriteLine($"{watch.ElapsedMilliseconds}");
         }
         [TestMethod]
         public void Update()
@@ -344,7 +344,7 @@ namespace LogicReinc.Data.Tests.Unified
                 obj.Update();
             }
             watch.Stop();
-            Console.WriteLine($"{watch.ElapsedTicks / TimeSpan.TicksPerMillisecond} - {watch.ElapsedMilliseconds}");
+            System.Console.WriteLine($"{watch.ElapsedTicks / TimeSpan.TicksPerMillisecond} - {watch.ElapsedMilliseconds}");
 
 
             obj.IntegerProperty = 1234;
@@ -378,7 +378,7 @@ namespace LogicReinc.Data.Tests.Unified
             }
 
             w.Stop();
-            Console.WriteLine(w.ElapsedMilliseconds);
+            System.Console.WriteLine(w.ElapsedMilliseconds);
         }
 
         [UnifiedCollection("LRUIMTestObjects")]

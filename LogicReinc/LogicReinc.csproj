@@ -79,6 +79,7 @@
     <Compile Include="Languages\Javascript\Builder\JSBObject.cs" />
     <Compile Include="Languages\Javascript\Builder\JSBOperation.cs" />
     <Compile Include="Languages\Javascript\Builder\JSBuilder.cs" />
+    <Compile Include="Network\TcpHttpClient.cs" />
     <Compile Include="Parsing\BinaryParser.cs" />
     <Compile Include="Parsing\StringParser.cs" />
     <Compile Include="Parsing\XmlParser.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Security\TokenSystem\TokenSystem.cs" />
     <Compile Include="SyntaxSugar\Switcher.cs" />
     <Compile Include="SyntaxSugar\Try.cs" />
+    <Compile Include="Templates\HandlerBase.cs" />
     <Compile Include="Threading\RWLock.cs" />
     <Compile Include="Threading\Worker.cs" />
     <Compile Include="Threading\WorkerPool.cs" />

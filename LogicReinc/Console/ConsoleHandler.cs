@@ -43,9 +43,10 @@ namespace LogicReinc.Console
                 MethodInfo info = cmds[str];
                 List<object> paras = new List<object>();
 
-                foreach (string para in arr)
-                    foreach (ParameterInfo p in info.GetParameters())
-                        paras.Add(parser.Parse(p.ParameterType, para.Trim('\'', '"')));
+                ParameterInfo[] pars = info.GetParameters();
+
+                for (int i = 0; i < pars.Length; i++)
+                    paras.Add(parser.Parse(pars[i].ParameterType, arr[i].Trim('\'', '"')));
 
                 info.Invoke(null, paras.ToArray());
                 return true;

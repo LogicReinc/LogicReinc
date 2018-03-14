@@ -45,7 +45,7 @@ namespace LogicReinc.Tests.Parsing
             Assert.AreEqual(val.Long, lon);
             Assert.AreEqual(val.Test[0], b1);
             Assert.AreEqual(val.Test[1], b2);
-            Assert.AreEqual(val.Obj?.Short, 8);
+            Assert.AreEqual(val.Obj?.Short, (short)8);
             Assert.AreEqual(val.Str, str);
         }
 

@@ -17,8 +17,8 @@ namespace LogicReinc.Expressions
         private static TSDualDictionary<Type, string, Action<object, object>> _cachedSetters = new TSDualDictionary<Type, string, Action<object, object>>(true);
 
 
-        static AssemblyBuilder _assembly = Thread.GetDomain().DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndSave);
-        static ModuleBuilder _module = _assembly.DefineDynamicModule(Guid.NewGuid().ToString(), false);
+        static AssemblyBuilder _assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndCollect);
+        static ModuleBuilder _module = _assembly.DefineDynamicModule(Guid.NewGuid().ToString());
 
 
         static Property()
@@ -96,9 +96,9 @@ namespace LogicReinc.Expressions
         public static List<Func<object, object>> BuildILPropertyGetters(params PropertyReference[] refs)
         {
             List<Func<object, object>> objs = new List<Func<object, object>>();
-            AssemblyBuilder assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndSave);
-            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(Guid.NewGuid().ToString(), false);
-            TypeBuilder typeBuilder = moduleBuilder.DefineType(Guid.NewGuid().ToString());
+            //AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndCollect);
+            //ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(Guid.NewGuid().ToString());
+            //TypeBuilder typeBuilder = moduleBuilder.DefineType(Guid.NewGuid().ToString());
             foreach (PropertyReference pref in refs)
             {
                 PropertyInfo prop = pref.Type.GetProperty(pref.Name);
@@ -119,13 +119,14 @@ namespace LogicReinc.Expressions
 
 
                 string mName = "m" + Guid.NewGuid().ToString().Replace("-", "");
-                MethodBuilder method = typeBuilder.DefineMethod(mName, MethodAttributes.Static | MethodAttributes.Public);
+                //MethodBuilder method = typeBuilder.DefineMethod(mName, MethodAttributes.Static | MethodAttributes.Public);
 
 
-                Expression.Lambda<Func<object, object>>(Expression.Convert(getExpression, typeof(object)), arg).CompileToMethod(method);
-                pref.Builder = method;
+                objs.Add(Expression.Lambda<Func<object, object>>(Expression.Convert(getExpression, typeof(object)), arg).Compile());//.CompileToMethod(method);
+                //pref.Builder = method;
             }
-            Type t = typeBuilder.CreateType();
+            /*
+            Type t = typeBuilder.AsType();//.CreateType();
 
             foreach(PropertyReference pref in refs)
             {
@@ -134,70 +135,13 @@ namespace LogicReinc.Expressions
                 objs.Add(fAction);
                 _cachedGetters[pref.Type, pref.Name] = fAction;
             }
-
+            */
             return objs;
         }
 
         public static Func<object, object> BuildEmitGet(string property, Type type, bool cache = false)
         {
             throw new NotImplementedException();
-            PropertyInfo prop = type.GetProperty(property);
-            if (prop == null)
-                throw new ArgumentException($"Property [{property}] does not exist");
-
-            //Parameters
-            ParameterExpression arg = Expression.Parameter(typeof(object), "obj");
-
-            //Conversion
-            UnaryExpression convertedArg = Expression.Convert(arg, type);
-
-            //Property
-            Expression getExpression = Expression.Property(convertedArg, property);
-
-
-            //(obj) => obj.[Property];
-
-
-            TypeBuilder _type = _module.DefineType(Guid.NewGuid().ToString());
-            string mName = "m" + Guid.NewGuid().ToString().Replace("-", "");
-
-
-            MethodBuilder method = _type.DefineMethod(mName, MethodAttributes.Static);
-            
-
-            DynamicMethod m = new DynamicMethod(mName, typeof(object), new Type[] { typeof(object) });
-            ILGenerator ilGen = m.GetILGenerator();
-            
-
-            Expression.Lambda<Func<object, object>>(Expression.Convert(getExpression, typeof(object)), arg).CompileToMethod(method);
-
-
-
-            Type ilGenType = typeof(ILGenerator);
-
-            //FieldInfo info_ILStream = ilGenType.GetField("m_ILStream", BindingFlags.NonPublic | BindingFlags.Instance);
-            //FieldInfo info_length = ilGenType.GetField("m_length", BindingFlags.NonPublic | BindingFlags.Instance);
-            //FieldInfo info_MaxStackSize = ilGenType.GetField("", BindingFlags.NonPublic | BindingFlags.Instance);
-            //FieldInfo info_LabelList = ilGenType.GetField("", BindingFlags.NonPublic | BindingFlags.Instance);
-            //FieldInfo info_MaxMidStackCur = ilGenType.GetField("", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            ILGenerator sourceGen = method.GetILGenerator();
-            //info_ILStream.SetValue(ilGen, info_ILStream.GetValue(sourceGen));
-            //info_length.SetValue(ilGen, info_length.GetValue(sourceGen));
-            foreach(FieldInfo field in ilGenType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
-                    .Where(x=> !new string[] 
-                    {
-                        "m_fixupData",
-                        "m_methodBuilder",
-                        "m_exceptions",
-                        "m_currExcStack",
-                        "m_exceptionCount",
-                        "m_currExcStackCount",
-                        "m_localSignature"}.Contains(x.Name)))
-                field.SetValue(ilGen, field.GetValue(sourceGen));
-            return (Func<object, object>)m.CreateDelegate(typeof(Func<object, object>));
-            //var method = t.GetMethod(mName, BindingFlags.Static | BindingFlags.Public);
-            //return (Func<object, object>)method.CreateDelegate(typeof(Func<object, object>));
         }
 
 
@@ -240,9 +184,9 @@ namespace LogicReinc.Expressions
         {
 
             List<Action<object, object>> objs = new List<Action<object, object>>();
-            AssemblyBuilder assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndSave);
-            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(Guid.NewGuid().ToString(), false);
-            TypeBuilder typeBuilder = moduleBuilder.DefineType(Guid.NewGuid().ToString());
+            //AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.RunAndCollect);
+            //ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(Guid.NewGuid().ToString());
+            //TypeBuilder typeBuilder = moduleBuilder.DefineType(Guid.NewGuid().ToString());
 
 
             foreach (PropertyReference pref in refs)
@@ -275,13 +219,13 @@ namespace LogicReinc.Expressions
                 
 
                 string mName = "m" + Guid.NewGuid().ToString().Replace("-", "");
-                MethodBuilder method = typeBuilder.DefineMethod(mName, MethodAttributes.Static | MethodAttributes.Public);
+                //MethodBuilder method = typeBuilder.DefineMethod(mName, MethodAttributes.Static | MethodAttributes.Public);
 
 
-                Expression.Lambda<Action<object, object>>(call, argObj, argVal).CompileToMethod(method);
-                pref.Builder = method;
+                objs.Add(Expression.Lambda<Action<object, object>>(call, argObj, argVal).Compile());//.CompileToMethod(method);
+                //pref.Builder = method;
             }
-            Type t = typeBuilder.CreateType();
+            /*Type t = typeBuilder.AsType();
 
             foreach (PropertyReference pref in refs)
             {
@@ -289,7 +233,7 @@ namespace LogicReinc.Expressions
                     .CreateDelegate(typeof(Action<object, object>));
                 objs.Add(fAction);
                 _cachedSetters[pref.Type, pref.Name] = fAction;
-            }
+            }*/
 
             return objs;
         }

@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace LogicReinc.Console
+namespace LogicReinc.ConsoleUtility
 {
     public class ConsoleHandler<T>
     {
@@ -38,9 +38,9 @@ namespace LogicReinc.Console
         }
         public static bool HandleCommand(string str, string[] arr)
         {
-            if(cmds.ContainsKey(str))
+            if(cmds.ContainsKey(str.ToLower()))
             {
-                MethodInfo info = cmds[str];
+                MethodInfo info = cmds[str.ToLower()];
                 List<object> paras = new List<object>();
 
                 ParameterInfo[] pars = info.GetParameters();
@@ -52,6 +52,16 @@ namespace LogicReinc.Console
                 return true;
             }
             return false;
+        }
+
+        public static void PrintFunctionality()
+        {
+            foreach(KeyValuePair<string, MethodInfo> method in cmds)
+            {
+                ParameterInfo[] paras = method.Value.GetParameters();
+
+                System.Console.WriteLine($"{method.Key}({string.Join(", ", paras.Select(x => $"[{x.ParameterType.Name}]{x.Name}"))})");
+            }
         }
 
 

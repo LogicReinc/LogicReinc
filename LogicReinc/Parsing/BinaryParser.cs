@@ -117,6 +117,8 @@ namespace LogicReinc.Parsing
 
         public static object DeserializePrimitive(BinaryReader reader, Type typ)
         {
+            if (typ == typeof(bool))
+                return reader.ReadBoolean();
             if (typ == typeof(byte))
                 return reader.ReadByte();
             else if (typ == typeof(char))
@@ -237,6 +239,8 @@ namespace LogicReinc.Parsing
         {
             Type typ = obj.GetType();
 
+            if (typ == typeof(bool))
+                writer.Write((bool)obj);
             if (typ == typeof(byte))
                 writer.Write((byte)obj);
             else if (typ == typeof(char))

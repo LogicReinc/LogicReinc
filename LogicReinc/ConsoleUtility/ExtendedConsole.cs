@@ -33,6 +33,25 @@ namespace LogicReinc.ConsoleUtility
         {
             User32.ShowWindow(User32.GetConsoleWindow(), User32.SW_HIDE);
         }
+
+        public static void ConsoleLoop(Func<bool> isActive, Action<Exception> handleEx = null, Action<string> handleNotFound = null)
+        {
+            string line = null;
+            while (isActive())
+            {
+                try
+                {
+                    line = Console.ReadLine();
+
+                    if (!HandleCommand(line))
+                        handleNotFound?.Invoke(line);
+                }
+                catch(Exception ex)
+                {
+                    handleEx?.Invoke(ex);
+                }
+            }
+        }
     }
 
     internal class User32

@@ -23,18 +23,20 @@ namespace LogicReinc.ConsoleUtility
                 .ToDictionary(x => ((HandlerAttribute)Attribute.GetCustomAttribute(x, typeof(HandlerAttribute), false)).Command.ToLower(), y => y);
         }
 
-        public static void HandleCommand(string str)
+        public static bool HandleCommand(string str)
         {
             List<string> val = Regex.Matches(str, @"[\""].+?[\""]|[^ ]+")
                 .Cast<Match>()
                 .Select(m => m.Value)
                 .ToList();
 
-            HandleCommand(val.ToArray());
+            return HandleCommand(val.ToArray());
         }
-        public static void HandleCommand(string[] arr)
+        public static bool HandleCommand(string[] arr)
         {
-            HandleCommand(arr[0], arr.Skip(1).ToArray());
+            if (arr.Length == 0)
+                return false;
+            return HandleCommand(arr[0], arr.Skip(1).ToArray());
         }
         public static bool HandleCommand(string str, string[] arr)
         {

@@ -25,20 +25,20 @@ namespace LogicReinc.Expressions
         {
         }
         
-        public static object Get(object obj, string name)
+        public static object Get(object obj, string name, bool allowPrivate = false)
         {
             Type type = obj.GetType();
-            return BuildPropertyGetter(name, type, true)(obj);
+            return BuildPropertyGetter(name, type, true, allowPrivate)(obj);
         }
-        public static T Get<T>(object obj, string name)
+        public static T Get<T>(object obj, string name, bool allowPrivate = false)
         {
-            return (T)Get(obj, name);
+            return (T)Get(obj, name, allowPrivate);
         }
 
-        public static void Set(object obj, string name, object value)
+        public static void Set(object obj, string name, object value, bool allowPrivate = false)
         {
             Type type = obj.GetType();
-            BuildPropertySetter(name, type, true)(obj, value);
+            BuildPropertySetter(name, type, true, allowPrivate)(obj, value);
         }
 
         public static Func<object, object> BuildPropertyGetter(string property, PropertyInfo prop, Type type, bool cache = false)
@@ -66,12 +66,16 @@ namespace LogicReinc.Expressions
             return lambda;
         }
 
-        public static Func<object, object> BuildPropertyGetter(string property, Type type, bool cache = false)
+        public static Func<object, object> BuildPropertyGetter(string property, Type type, bool cache = false, bool allowPrivate = false)
         {
                 if (cache && _cachedGetters.ContainsKey(type, property))
                     return _cachedGetters[type, property];
 
-            PropertyInfo prop = type.GetProperty(property);
+            BindingFlags flags = (BindingFlags.Public | BindingFlags.Instance);
+            if (allowPrivate)
+                flags = flags | BindingFlags.NonPublic;
+
+            PropertyInfo prop = type.GetProperty(property, flags);
             if (prop == null)
                 throw new ArgumentException($"Property [{property}] does not exist");
 
@@ -145,12 +149,17 @@ namespace LogicReinc.Expressions
         }
 
 
-        public static Action<object, object> BuildPropertySetter(string property, Type type, bool cache = false)
+        public static Action<object, object> BuildPropertySetter(string property, Type type, bool cache = false, bool allowPrivate = false)
         {
             if (cache && _cachedSetters.ContainsKey(type, property))
                 return _cachedSetters[type, property];
 
-            PropertyInfo prop = type.GetProperty(property);
+
+            BindingFlags flags = (BindingFlags.Public | BindingFlags.Instance);
+            if (allowPrivate)
+                flags = flags | BindingFlags.NonPublic;
+
+            PropertyInfo prop = type.GetProperty(property, flags);
             if (prop == null)
                 throw new ArgumentException($"Property [{property}] does not exist");
 

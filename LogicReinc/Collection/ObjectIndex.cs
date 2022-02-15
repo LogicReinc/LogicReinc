@@ -12,7 +12,14 @@ namespace LogicReinc.Collection
         private ReaderWriterLockSlim locked = new ReaderWriterLockSlim();
         private Dictionary<string, Dictionary<object, List<T>>> indexes = new Dictionary<string, Dictionary<object, List<T>>>();
 
+        public bool AlwaysCopyResults { get; set; } = false;
+
         public List<string> Properties { get { lock (indexes) { return indexes.Keys.ToList(); } } }
+
+        public ObjectIndex(bool copyResults = false)
+        {
+            AlwaysCopyResults = copyResults;
+        }
 
         public void RemoveIndex(string property, object value, T obj)
         {
@@ -70,6 +77,23 @@ namespace LogicReinc.Collection
             }
         }
 
+        public int GetIndexLength(string property, object value)
+        {
+            locked.EnterReadLock();
+            try
+            {
+                if (!indexes.ContainsKey(property))
+                    return 0;
+                if (!indexes[property].ContainsKey(value))
+                    return 0;
+                return indexes[property][value].Count;
+            }
+            finally
+            {
+                locked.ExitReadLock();
+            }
+        }
+
         public List<T> GetIndex(string property, object value)
         {
             locked.EnterReadLock();
@@ -79,7 +103,25 @@ namespace LogicReinc.Collection
                     return new List<T>();
                 if (!indexes[property].ContainsKey(value))
                     return new List<T>();
-                return indexes[property][value];
+                List<T> result = indexes[property][value];
+                return (AlwaysCopyResults) ? result.ToList() : result;
+            }
+            finally
+            {
+                locked.ExitReadLock();
+            }
+        }
+        public List<C> GetIndex<C>(string property, object value)
+        {
+            locked.EnterReadLock();
+            try
+            {
+                if (!indexes.ContainsKey(property))
+                    return new List<C>();
+                if (!indexes[property].ContainsKey(value))
+                    return new List<C>();
+                List<T> result = indexes[property][value];
+                return result.Cast<C>().ToList();
             }
             finally
             {

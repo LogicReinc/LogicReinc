@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <Version>1.0.5</Version>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <Version>1.0.6</Version>
     <Description>A utility framework containing various tools like worker pools, wrappers, high-speed reflection and way more.</Description>
     <PackageReleaseNotes>Add boolean to binary parser</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/LogicReinc/LogicReinc</PackageProjectUrl>
@@ -14,12 +14,12 @@
     <RepositoryUrl>https://github.com/LogicReinc/LogicReinc</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageTags>Utility</PackageTags>
-    <FileVersion>1.0.5.0</FileVersion>
+    <FileVersion>1.0.6.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
-    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
   </ItemGroup>
 
 </Project>
